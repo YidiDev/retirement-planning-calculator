@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retirement Withdrawal Calculator</title>
+<meta name="description" content="A flexible, market-aware retirement withdrawal calculator stress-tested against 150+ years of real market history.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#6b5ce7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0}
+:root{
+  --bg:#eeedf2;--surface:#fff;--ink:#1e1e2e;--body:#55556a;--faint:#8e8ea0;
+  --accent:#6b5ce7;--accent-soft:rgba(107,92,231,.1);--accent-hover:#5a49d6;
+  --teal:#4ecdc4;--teal-soft:rgba(78,205,196,.12);
+  --amber:#e0a030;--amber-soft:rgba(224,160,48,.12);
+  --rose:#d94065;--rose-soft:rgba(217,64,101,.1);
+  --line:rgba(30,30,46,.07);--wash:rgba(107,92,231,.04);
+  --shadow:0 1px 2px rgba(0,0,0,.04),0 4px 16px rgba(0,0,0,.06),0 12px 40px rgba(0,0,0,.04);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.04),0 2px 8px rgba(0,0,0,.04);
+  --shadow-inset:inset 0 1px 3px rgba(0,0,0,.06);
+  --radius:24px;--radius-md:16px;--radius-sm:12px;
+}
+html{font-family:'Nunito',system-ui,-apple-system,sans-serif;color:var(--body);background:var(--bg);-webkit-font-smoothing:antialiased;font-size:15px;line-height:1.6}
+body{min-height:100vh;padding:0 16px}
+[x-cloak]{display:none!important}
+.container{max-width:640px;margin:0 auto}
+
+/* Cards */
+.card{background:var(--surface);border-radius:var(--radius);box-shadow:var(--shadow);padding:28px 24px;margin-bottom:20px}
+@media(min-width:640px){.card{padding:36px 32px}}
+
+/* Typography */
+h1{font-size:clamp(1.6rem,4.5vw,2.2rem);font-weight:700;color:var(--ink);line-height:1.2;letter-spacing:-.01em}
+h2{font-size:1.25rem;font-weight:700;color:var(--ink)}
+.label{font-size:.8rem;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.hint{font-size:.85rem;color:var(--faint);margin-top:2px}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* Step dots */
+.step{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:.8rem;margin-right:10px;flex-shrink:0}
+
+/* Inputs */
+input[type=number],select{
+  width:100%;padding:12px 16px;border:none;border-radius:var(--radius-md);
+  background:var(--surface);box-shadow:var(--shadow-inset),var(--shadow-sm);
+  font:inherit;font-size:1rem;color:var(--ink);outline:none;
+  transition:box-shadow .2s;appearance:textfield;
+}
+input[type=number]:focus,select:focus{box-shadow:var(--shadow-inset),0 0 0 2px var(--accent)}
+input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+select{cursor:pointer;padding-right:36px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8ea0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+.input-wrap{position:relative}
+.input-wrap .pre{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--faint);font-weight:600;pointer-events:none}
+.input-wrap .suf{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--faint);font-weight:600;font-size:.85rem;pointer-events:none}
+.input-wrap input.has-pre{padding-left:32px}
+.input-wrap input.has-suf{padding-right:48px}
+
+/* Range sliders */
+input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:3px;background:var(--line);outline:none;margin:12px 0 4px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);box-shadow:0 2px 8px rgba(107,92,231,.35);cursor:pointer;border:3px solid var(--surface);transition:transform .15s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);box-shadow:0 2px 8px rgba(107,92,231,.35);cursor:pointer;border:3px solid var(--surface)}
+input[type=range]::-webkit-slider-runnable-track{border-radius:3px}
+
+/* Option pills */
+.opt{display:inline-flex;padding:8px 18px;border-radius:999px;border:none;background:var(--wash);color:var(--body);font:inherit;font-size:.9rem;font-weight:600;cursor:pointer;transition:all .2s}
+.opt:hover{background:var(--accent-soft);color:var(--accent)}
+.opt-on{background:var(--accent)!important;color:#fff!important;box-shadow:0 2px 12px rgba(107,92,231,.3)}
+
+/* CTA */
+.cta{display:block;width:100%;padding:16px 24px;border:none;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(107,92,231,.3);transition:all .2s}
+.cta:hover:not(:disabled){background:var(--accent-hover);transform:translateY(-1px);box-shadow:0 6px 24px rgba(107,92,231,.4)}
+.cta:disabled{opacity:.6;cursor:not-allowed}
+
+/* Chips */
+.chip{padding:5px 14px;border-radius:999px;border:none;background:var(--wash);color:var(--accent);font:inherit;font-size:.8rem;font-weight:700;cursor:pointer;transition:all .15s}
+.chip:hover{background:var(--accent-soft)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.tab{padding:8px 18px;border:none;border-radius:999px;background:transparent;color:var(--faint);font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.tab:hover{color:var(--accent)}
+.tab-on{background:var(--accent);color:#fff!important;box-shadow:0 2px 10px rgba(107,92,231,.25)}
+
+/* Badges */
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.75rem;font-weight:700}
+.badge-ok{background:var(--teal-soft);color:#2a9d8f}
+.badge-no{background:var(--rose-soft);color:var(--rose)}
+
+/* Confidence pills */
+.conf{display:inline-flex;align-items:center;gap:6px;padding:8px 18px;border-radius:999px;font-size:.9rem;font-weight:700}
+.conf-high{background:var(--teal-soft);color:#2a9d8f}
+.conf-good{background:var(--accent-soft);color:var(--accent)}
+.conf-fair{background:var(--amber-soft);color:var(--amber)}
+.conf-low{background:var(--rose-soft);color:var(--rose)}
+
+/* Chart container */
+.chart-wrap{position:relative;height:280px;margin-top:8px}
+
+/* Table */
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius-md);margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{text-align:left;padding:10px 12px;color:var(--faint);font-weight:700;font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:2px solid var(--line)}
+td{padding:9px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+tr.fail td{color:var(--rose)}
+
+/* Stat cards */
+.stat{background:var(--wash);border-radius:var(--radius-md);padding:18px 20px}
+.stat-val{font-size:1.5rem;font-weight:800;color:var(--ink)}
+
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:22px;height:22px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:inline-block}
+
+/* Toggle link */
+.toggle{border:none;background:none;color:var(--accent);font:inherit;font-size:.9rem;font-weight:700;cursor:pointer;padding:0;display:inline-flex;align-items:center;gap:5px}
+.toggle:hover{text-decoration:underline;text-underline-offset:3px}
+.toggle svg{width:14px;height:14px;transition:transform .2s}
+
+/* Mix bar */
+.mix-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line)}
+.mix-bar span{transition:width .3s}
+.bar-eq{background:var(--accent)}.bar-bd{background:var(--teal)}.bar-gd{background:var(--amber)}
+
+/* Field spacing */
+.field{margin-bottom:20px}
+.field:last-child{margin-bottom:0}
+.field-label{font-size:.9rem;font-weight:700;color:var(--ink);margin-bottom:4px}
+.range-labels{display:flex;justify-content:space-between;font-size:.75rem;color:var(--faint)}
+
+/* Transitions */
+.fade-enter{opacity:0;transform:translateY(6px)}.fade-enter-active{transition:all .25s ease-out}
+.fade-enter-to{opacity:1;transform:translateY(0)}
+
+/* Details */
+details summary{list-style:none}
+details summary::-webkit-details-marker{display:none}
+
+/* Grid helpers */
+.grid-3{display:grid;gap:12px}
+@media(min-width:520px){.grid-3{grid-template-columns:repeat(3,1fr)}}
+
+/* Accessibility */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<main x-data="calculator" x-cloak class="container" style="padding-top:clamp(32px,6vw,64px);padding-bottom:48px">
+
+<!-- Header -->
+<header style="margin-bottom:28px">
+  <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+    <svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:4px">
+      <polyline points="4,22 10,14 16,18 26,6"/>
+      <circle cx="26" cy="6" r="2.5" fill="var(--accent)" stroke="none"/>
+    </svg>
+    <h1>How much can you safely withdraw?</h1>
+  </div>
+  <p style="max-width:440px;line-height:1.65">A flexible withdrawal strategy, stress-tested against 150+ years of real U.S. market history.</p>
+  <button class="toggle" style="margin-top:14px" @click="showHelp=!showHelp" :aria-expanded="showHelp">
+    <span x-text="showHelp?'Hide details':'How does this work?'"></span>
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" :style="showHelp&&'transform:rotate(180deg)'"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+  </button>
+  <div x-show="showHelp" x-cloak x-transition.opacity.duration.200ms style="margin-top:12px;padding-left:16px;border-left:3px solid var(--line);font-size:.9rem;max-width:480px;line-height:1.7">
+    <p style="margin-bottom:8px">Each month you withdraw a <strong style="color:var(--ink)">percentage of savings</strong> that flexes with the market &mdash; always between a <strong style="color:var(--ink)">floor</strong> and <strong style="color:var(--ink)">cap</strong> you set.</p>
+    <p style="margin-bottom:8px">The calculator replays your plan through <strong style="color:var(--ink)">every starting month since 1871</strong>. Whatever it shows is a ceiling.</p>
+    <p>Three return streams: <strong style="color:var(--ink)">U.S. stocks</strong>, <strong style="color:var(--ink)">Treasury bonds</strong>, and <strong style="color:var(--ink)">gold</strong> (1968+). No taxes or fees modeled.</p>
+  </div>
+</header>
+
+<!-- Step 1: Your situation -->
+<div class="card">
+  <div style="display:flex;align-items:center;margin-bottom:20px">
+    <span class="step">1</span>
+    <h2>Your situation</h2>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Retirement savings</div>
+    <div class="hint">Total nest egg, today's dollars.</div>
+    <div class="input-wrap" style="margin-top:8px;max-width:240px">
+      <span class="pre">$</span>
+      <input type="number" class="has-pre" min="10000" step="10000" x-model.number="savings" aria-label="Retirement savings">
+    </div>
+    <input type="range" min="50000" max="5000000" step="50000" x-model.number="savings" aria-label="Savings slider">
+    <div class="range-labels tnum"><span>$50k</span><span>$5M</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">How long should it last?</div>
+    <div style="display:flex;align-items:center;gap:16px;margin-top:8px">
+      <input type="range" min="5" max="60" step="1" x-model.number="years" style="flex:1" aria-label="Retirement length">
+      <span class="tnum" style="font-size:1.5rem;font-weight:800;color:var(--ink);min-width:64px;text-align:right" x-text="years+' yr'"></span>
+    </div>
+    <div class="range-labels" style="margin-top:2px"><span>5</span><span>60</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">What should remain at the end?</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px" role="radiogroup" aria-label="Retirement goal">
+      <button type="button" class="opt" :class="goalPreset==='preserve'&&'opt-on'" @click="setGoalPreset('preserve')">Keep it all</button>
+      <button type="button" class="opt" :class="goalPreset==='spend'&&'opt-on'" @click="setGoalPreset('spend')">Spend it down</button>
+      <button type="button" class="opt" :class="goalPreset==='custom'&&'opt-on'" @click="setGoalPreset('custom')">Custom</button>
+    </div>
+    <template x-if="goalPreset==='custom'">
+      <div class="input-wrap" style="margin-top:10px;max-width:120px">
+        <input type="number" class="has-suf" min="0" max="300" step="5" x-model.number="retainPct" aria-label="Retain percentage">
+        <span class="suf">%</span>
+      </div>
+    </template>
+  </div>
+</div>
+
+<!-- Step 2: Portfolio -->
+<div class="card">
+  <div style="display:flex;align-items:center;margin-bottom:20px">
+    <span class="step">2</span>
+    <h2>Your portfolio</h2>
+  </div>
+
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" role="radiogroup" aria-label="Portfolio strategy">
+    <template x-for="s in [{id:'stocks',l:'All stocks'},{id:'balanced',l:'60 / 40'},{id:'conservative',l:'Conservative'},{id:'custom',l:'Custom'}]" :key="s.id">
+      <button type="button" class="opt" :class="strategyPreset===s.id&&'opt-on'" @click="setStrategy(s.id)" x-text="s.l"></button>
+    </template>
+  </div>
+
+  <div class="mix-bar" style="margin-bottom:8px">
+    <span class="bar-eq" :style="'width:'+sleeveBarStyles.sp"></span>
+    <span class="bar-bd" :style="'width:'+sleeveBarStyles.bd"></span>
+    <span class="bar-gd" :style="'width:'+sleeveBarStyles.gd"></span>
+  </div>
+  <div style="display:flex;gap:14px;font-size:.8rem;color:var(--faint);flex-wrap:wrap">
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--accent)"></span><span x-text="Math.round(sleeves.sp)+'% stocks'"></span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--teal)"></span><span x-text="Math.round(sleeves.bd)+'% bonds'"></span></span>
+    <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--amber)"></span><span x-text="Math.round(sleeves.gd)+'% gold'"></span></span>
+  </div>
+  <div style="font-size:.78rem;color:var(--faint);margin-top:4px" x-text="allocNote"></div>
+
+  <template x-if="showCustomPortfolio">
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line)">
+      <div class="label" style="margin-bottom:10px">Your holdings</div>
+      <template x-if="portfolio.length===0"><p style="font-size:.9rem;color:var(--faint);padding:8px 0">No holdings yet &mdash; pick below.</p></template>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <template x-for="p in portfolio" :key="p.id">
+          <div style="display:flex;align-items:center;gap:10px;background:var(--wash);border-radius:var(--radius-sm);padding:12px 14px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:.9rem;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap" x-text="assetName(p.id)"></div>
+              <div style="font-size:.75rem;color:var(--faint)" x-text="assetTicker(p.id)+' · '+assetYears(p.id)"></div>
+            </div>
+            <div class="input-wrap" style="width:72px;flex-shrink:0">
+              <input type="number" class="has-suf" style="font-size:.85rem;padding:8px 10px;padding-right:30px" min="0" max="100" step="1" :value="p.weight" @input="updateWeight(p.id,$event.target.value)" :aria-label="'Weight for '+assetName(p.id)">
+              <span class="suf" style="font-size:.75rem">%</span>
+            </div>
+            <button type="button" @click="removeAsset(p.id)" :aria-label="'Remove '+assetName(p.id)" style="width:32px;height:32px;border:none;background:none;color:var(--faint);font-size:1.2rem;cursor:pointer;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:bold;transition:all .15s" onmouseover="this.style.color='var(--rose)';this.style.background='var(--rose-soft)'" onmouseout="this.style.color='var(--faint)';this.style.background='none'">&times;</button>
+          </div>
+        </template>
+      </div>
+      <div class="label" style="margin-bottom:10px">Add sources</div>
+      <template x-for="group in assetGroups" :key="group">
+        <div style="margin-bottom:12px">
+          <div style="font-size:.75rem;font-weight:800;color:var(--ink);margin-bottom:6px" x-text="group"></div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            <template x-for="a in groupAssets(group)" :key="a.id">
+              <button type="button" @click="addAsset(a.id)" class="chip" :style="isInPortfolio(a.id)&&'background:var(--accent);color:#fff'" x-text="a.name"></button>
+            </template>
+          </div>
+        </div>
+      </template>
+    </div>
+  </template>
+</div>
+
+<!-- Step 3: Withdrawal rules -->
+<div class="card">
+  <div style="display:flex;align-items:center;margin-bottom:20px">
+    <span class="step">3</span>
+    <h2>Withdrawal rules</h2>
+  </div>
+  <p style="font-size:.9rem;color:var(--faint);margin-bottom:20px">Set your monthly income range.</p>
+
+  <div class="field">
+    <div class="field-label">Minimum monthly income</div>
+    <div class="hint">The least you need each month.</div>
+    <div class="input-wrap" style="margin-top:8px;max-width:200px">
+      <span class="pre">$</span>
+      <input type="number" class="has-pre" min="0" step="100" x-model.number="minIncome" aria-label="Minimum monthly income">
+    </div>
+    <input type="range" min="0" max="15000" step="100" x-model.number="minIncome" aria-label="Minimum income slider">
+    <div class="range-labels tnum"><span>$0</span><span>$15k</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Maximum monthly income</div>
+    <div class="hint">The most you'd take, even in great markets.</div>
+    <div class="input-wrap" style="margin-top:8px;max-width:200px">
+      <span class="pre">$</span>
+      <input type="number" class="has-pre" min="0" step="100" x-model.number="maxIncome" aria-label="Maximum monthly income">
+    </div>
+    <input type="range" min="1000" max="50000" step="500" x-model.number="maxIncome" aria-label="Maximum income slider">
+    <div class="range-labels tnum"><span>$1k</span><span>$50k</span></div>
+  </div>
+
+  <button type="button" class="toggle" @click="showAdvanced=!showAdvanced" :aria-expanded="showAdvanced">
+    <span x-text="showAdvanced?'Hide advanced':'Advanced options'"></span>
+    <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" :style="showAdvanced&&'transform:rotate(180deg)'"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+  </button>
+
+  <template x-if="showAdvanced">
+    <div style="margin-top:16px;padding-top:20px;border-top:1px solid var(--line)">
+      <div class="field">
+        <div class="field-label" style="margin-bottom:8px">Floor mode</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" role="radiogroup">
+          <template x-for="m in [{id:'usd',l:'Dollar'},{id:'pct',l:'Percentage'},{id:'both',l:'Both'}]" :key="m.id">
+            <button type="button" class="opt" style="font-size:.82rem;padding:6px 14px" :class="floorMode===m.id&&'opt-on'" @click="floorMode=m.id" x-text="m.l"></button>
+          </template>
+        </div>
+        <template x-if="floorMode==='pct'||floorMode==='both'">
+          <div class="input-wrap" style="margin-top:10px;max-width:140px">
+            <input type="number" class="has-suf" style="font-size:.9rem" min="0" max="12" step=".05" x-model.number="minFloorPct" aria-label="Floor %">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+        <template x-if="floorMode==='both'">
+          <div class="input-wrap" style="margin-top:8px;max-width:140px">
+            <input type="number" class="has-suf" style="font-size:.9rem" min="0" max="12" step=".05" x-model.number="pctFloor" aria-label="Pct floor">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+      </div>
+      <div class="field">
+        <div class="field-label" style="margin-bottom:8px">Cap mode</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" role="radiogroup">
+          <template x-for="m in [{id:'usd',l:'Dollar'},{id:'pct',l:'Percentage'},{id:'both',l:'Both'}]" :key="m.id">
+            <button type="button" class="opt" style="font-size:.82rem;padding:6px 14px" :class="capMode===m.id&&'opt-on'" @click="capMode=m.id" x-text="m.l"></button>
+          </template>
+        </div>
+        <template x-if="capMode==='pct'||capMode==='both'">
+          <div class="input-wrap" style="margin-top:10px;max-width:140px">
+            <input type="number" class="has-suf" style="font-size:.9rem" min=".5" max="40" step=".25" x-model.number="maxCapPct" aria-label="Cap %">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <div class="field-label" style="margin-bottom:8px">Lookback</div>
+          <div class="input-wrap"><input type="number" class="has-suf" style="font-size:.9rem" min="1" max="120" x-model.number="lookback" aria-label="Lookback"><span class="suf">mo</span></div>
+        </div>
+        <div>
+          <div class="field-label" style="margin-bottom:8px">Recalc every</div>
+          <div class="input-wrap"><input type="number" class="has-suf" style="font-size:.9rem" min="1" max="120" x-model.number="recalc" aria-label="Recalc"><span class="suf">mo</span></div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--line)">
+    <button type="button" class="cta" @click="calculate()" :disabled="loading">
+      <span x-show="!loading">Calculate my safe withdrawal</span>
+      <span x-show="loading" x-cloak style="display:inline-flex;align-items:center;gap:8px"><span class="spinner"></span> Running&hellip;</span>
+    </button>
+  </div>
+</div>
+
+<!-- Empty state -->
+<template x-if="!showResults&&!loading">
+  <div style="text-align:center;padding:36px 0;color:var(--faint);font-size:.9rem">
+    <svg width="40" height="40" fill="none" stroke="var(--line)" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 12px"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z"/></svg>
+    <p>Adjust your settings above, then calculate.</p>
+  </div>
+</template>
+
+<!-- Loading state -->
+<template x-if="loading">
+  <div style="text-align:center;padding:48px 0;color:var(--faint)" aria-live="polite">
+    <div class="spinner" style="width:28px;height:28px;border-color:var(--line);border-top-color:var(--accent);margin:0 auto 12px"></div>
+    <p style="font-size:.9rem">Running simulation&hellip;</p>
+  </div>
+</template>
+
+<!-- Results -->
+<template x-if="showResults&&rows.length>0">
+  <div>
+    <!-- Hero result -->
+    <div class="card" style="padding-bottom:32px">
+      <div class="label" style="margin-bottom:10px">Your result</div>
+      <div class="tnum" style="font-size:clamp(2rem,7vw,3rem);font-weight:800;color:var(--ink);line-height:1" x-text="heroMonthly+'/mo'"></div>
+      <p style="margin-top:12px;max-width:440px;line-height:1.65">safe to withdraw &mdash; worked in <strong style="color:var(--ink)" x-text="heroPassRate"></strong> of <span x-text="periodCount"></span> simulated retirements since <span x-text="firstYear"></span>.</p>
+      <div class="conf" style="margin-top:14px" :class="{'conf-high':heroConfidence==='high','conf-good':heroConfidence==='good','conf-fair':heroConfidence==='fair','conf-low':heroConfidence==='low'}">
+        <span x-text="heroPassRate"></span> success rate
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-3" style="margin-bottom:20px">
+      <div class="card" style="margin-bottom:0">
+        <div class="label" style="margin-bottom:4px">Starting income</div>
+        <div class="stat-val tnum" x-text="heroMonthly+'/mo'"></div>
+        <div style="font-size:.75rem;color:var(--faint);margin-top:4px">median first year</div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="label" style="margin-bottom:4px">Avg. over retirement</div>
+        <div class="stat-val tnum" x-text="typicalAvgIncome"></div>
+        <div style="font-size:.75rem;color:var(--faint);margin-top:4px">grows with savings</div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="label" style="margin-bottom:4px">Toughest period</div>
+        <div class="stat-val tnum" x-text="worstCase?pctFmt(worstCase.endRatio,0)+' left':'—'"></div>
+        <div style="font-size:.75rem;color:var(--faint);margin-top:4px">
+          <span x-text="worstCase?worstCase.start:''"></span>
+          <template x-if="failCount>0"><span style="color:var(--rose);font-weight:700" x-text="' · '+failCount+' missed'"></span></template>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:.88rem;line-height:1.7;max-width:500px;margin-bottom:24px;color:var(--body)" x-text="summaryPhrase"></p>
+
+    <!-- Charts -->
+    <div class="card">
+      <div class="tabs" style="margin-bottom:20px" role="tablist" aria-label="Charts">
+        <template x-for="t in [{id:'income',l:'Income'},{id:'preserve',l:'Savings left'},{id:'spotlight',l:'Deep dive'}]" :key="t.id">
+          <button type="button" role="tab" :aria-selected="resultTab===t.id" class="tab" :class="resultTab===t.id&&'tab-on'" @click="resultTab=t.id" x-text="t.l"></button>
+        </template>
+      </div>
+
+      <div x-show="resultTab==='income'" x-cloak>
+        <p class="hint" style="margin-bottom:12px">Monthly withdrawal across every historical start date.</p>
+        <div class="chart-wrap"><canvas id="chartIncome"></canvas></div>
+      </div>
+      <div x-show="resultTab==='preserve'" x-cloak>
+        <p class="hint" style="margin-bottom:12px">Savings remaining at the end. <span style="color:var(--rose);font-weight:700">Red</span> = missed goal.</p>
+        <div class="chart-wrap"><canvas id="chartPreserve"></canvas></div>
+      </div>
+      <div x-show="resultTab==='spotlight'" x-cloak>
+        <p class="hint" style="margin-bottom:12px">A single retirement, month by month.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px">
+          <select @change="selectSpot($event.target.value)" :value="spotIdx" aria-label="Select period" style="font-size:.88rem;padding:8px 36px 8px 12px;max-width:100%;border-radius:var(--radius-sm)">
+            <template x-for="opt in spotOptions" :key="opt.s"><option :value="opt.s" x-text="opt.label" :selected="spotIdx===opt.s"></option></template>
+          </select>
+          <button type="button" class="chip" @click="selectSpotWorst()">Worst</button>
+          <button type="button" class="chip" @click="selectSpotBest()">Best</button>
+          <button type="button" class="chip" @click="selectSpotTypical()">Typical</button>
+        </div>
+        <div class="chart-wrap"><canvas id="chartSpotlight"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card">
+      <details>
+        <summary class="toggle" style="cursor:pointer">See all <span x-text="periodCount"></span> simulated retirements</summary>
+        <div style="margin-top:16px">
+          <p class="hint" style="margin-bottom:10px">
+            <template x-if="failCount===0"><span style="color:var(--teal);font-weight:700">Every period met the goal.</span></template>
+            <template x-if="failCount>0"><span style="color:var(--rose);font-weight:700" x-text="failCount+' fell short.'"></span></template>
+          </p>
+          <div class="tbl-wrap" tabindex="0" role="region" aria-label="Results table">
+            <table>
+              <thead><tr><th>Started</th><th>Ended</th><th>1st yr</th><th>Avg</th><th>Left</th><th>Goal</th></tr></thead>
+              <tbody>
+                <template x-for="r in rows" :key="r.s">
+                  <tr :class="!r.passed&&'fail'">
+                    <td x-text="r.start"></td><td x-text="r.end"></td>
+                    <td x-text="rowIncome(r)"></td><td x-text="rowAvg(r)"></td>
+                    <td x-text="rowEnd(r)"></td>
+                    <td><span class="badge" :class="r.passed?'badge-ok':'badge-no'" x-text="r.passed?'met':'short'"></span></td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+</template>
+
+<!-- No data warning -->
+<template x-if="showResults&&rows.length===0">
+  <div class="card" style="background:var(--amber-soft);border:1px solid var(--amber)">
+    <p style="font-size:.9rem;font-weight:700;color:var(--amber)">Not enough history for <span x-text="years"></span> years. Shorten the retirement or adjust the portfolio.</p>
+  </div>
+</template>
+
+<!-- Footer -->
+<footer style="font-size:.78rem;color:var(--faint);padding-top:24px;line-height:1.7">
+  <p>Simulation data: U.S. equity, Treasury bonds, gold &amp; CPI through Jun 2023.</p>
+  <p style="margin-top:4px">Educational only &mdash; not financial advice.</p>
+</footer>
+
+</main>
+
+<script>
+fetch('/worker-data.js').then(r=>r.text()).then(src=>{
+  document.getElementById('worker-src').textContent=src;
+});
+</script>
+<script id="worker-src" type="javascript/worker"></script>
+
+<script>
+/* ── Assets ── */
+const ASSETS=[
+  {id:'sp500_price',name:'S&P 500',ticker:'^GSPC',group:'U.S. Stocks',sleeve:'sp',years:'1928 +'},
+  {id:'sp500_total_return',name:'S&P 500 Total Return',ticker:'^SP500TR',group:'U.S. Stocks',sleeve:'sp',years:'1988 +'},
+  {id:'sp500_equal_weight',name:'S&P 500 Equal Weight',ticker:'RSP',group:'U.S. Stocks',sleeve:'sp',years:'2003 +'},
+  {id:'sp500_growth',name:'S&P 500 Growth',ticker:'IVW',group:'U.S. Stocks',sleeve:'sp',years:'2000 +'},
+  {id:'sp500_value',name:'S&P 500 Value',ticker:'IVE',group:'U.S. Stocks',sleeve:'sp',years:'2000 +'},
+  {id:'total_us_market_vti',name:'Total U.S. Market',ticker:'VTI',group:'U.S. Stocks',sleeve:'sp',years:'2001 +'},
+  {id:'russell_3000_iwv',name:'Russell 3000',ticker:'IWV',group:'U.S. Stocks',sleeve:'sp',years:'2000 +'},
+  {id:'developed_ex_us_efa',name:'Developed ex-U.S.',ticker:'EFA',group:'International',sleeve:'sp',years:'2001 +'},
+  {id:'emerging_markets_eem',name:'Emerging Markets',ticker:'EEM',group:'International',sleeve:'sp',years:'2003 +'},
+  {id:'total_bond_market_bnd',name:'Total Bond Market',ticker:'BND',group:'Bonds',sleeve:'bd',years:'2007 +'},
+  {id:'ten_year_treasury_yield',name:'10-Year Treasury',ticker:'DGS10',group:'Bonds',sleeve:'bd',years:'1962 +'},
+  {id:'gold_gld',name:'Gold ETF',ticker:'GLD',group:'Gold',sleeve:'gd',years:'2004 +'},
+  {id:'gold_futures_yahoo',name:'Gold Futures',ticker:'GC=F',group:'Gold',sleeve:'gd',years:'2000 +'},
+];
+function assetById(id){return ASSETS.find(a=>a.id===id)||null}
+function assetGroupsList(){const g=[],s=new Set();for(const a of ASSETS){if(!s.has(a.group)){s.add(a.group);g.push(a.group)}}return g}
+function calcSleeves(portfolio){const o={sp:0,bd:0,gd:0,total:0};for(const p of portfolio){const a=assetById(p.id),w=Math.max(0,parseFloat(p.weight)||0);if(!a)continue;o[a.sleeve]+=w;o.total+=w}return o}
+
+/* ── Charts ── */
+Chart.defaults.font.family="'Nunito',system-ui,sans-serif";
+Chart.defaults.font.size=11;
+Chart.defaults.color='#8e8ea0';
+const charts={};
+function destroyChart(k){if(charts[k]){charts[k].destroy();charts[k]=null}}
+function moneyK(v){if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(2).replace(/\.?0+$/,'')+'M';if(Math.abs(v)>=1000)return '$'+Math.round(v/100)/10+'k';return '$'+Math.round(v)}
+function baseOpts(yT,yF){return{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true}},y:{title:{display:true,text:yT},grid:{color:'rgba(30,30,46,.06)'},border:{display:false},ticks:{callback:v=>yF(v)}}},plugins:{legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}}},tooltip:{callbacks:{title:i=>'Retired '+i[0].label}}}}}
+function renderIncome(id,rows){destroyChart('inc');const el=document.getElementById(id);if(!el)return;charts.inc=new Chart(el,{type:'line',data:{labels:rows.map(r=>r.start),datasets:[{label:'Average monthly income',data:rows.map(r=>Math.round(r.avgAnnualReal/12)),borderColor:'#6b5ce7',backgroundColor:'rgba(107,92,231,.08)',borderWidth:1.6,pointRadius:0,fill:true,tension:.15},{label:'First-year monthly income',data:rows.map(r=>Math.round(r.firstYearReal/12)),borderColor:'#4ecdc4',backgroundColor:'rgba(78,205,196,.08)',borderWidth:1.6,pointRadius:0,fill:true,tension:.15}]},options:baseOpts("Withdrawal ($/month, today's $)",moneyK)})}
+function renderPreserve(id,rows,target){destroyChart('pre');const el=document.getElementById(id);if(!el)return;charts.pre=new Chart(el,{type:'line',data:{labels:rows.map(r=>r.start),datasets:[{label:'Savings remaining (%)',data:rows.map(r=>+(r.endRatio*100).toFixed(1)),borderColor:'#6b5ce7',backgroundColor:'rgba(107,92,231,.06)',borderWidth:1.6,fill:true,tension:.15,pointRadius:rows.map(r=>r.passed?0:3),pointBackgroundColor:rows.map(r=>r.passed?'transparent':'#d94065'),pointBorderColor:rows.map(r=>r.passed?'transparent':'#d94065')},{label:'Goal ('+Math.round(target*100)+'%)',data:rows.map(()=>target*100),borderColor:'#8e8ea0',borderWidth:1.4,borderDash:[6,4],pointRadius:0,fill:false}]},options:baseOpts('Inflation-adjusted savings left',v=>v+'%')})}
+function renderSpotlight(id,traj){destroyChart('spot');const el=document.getElementById(id);if(!el)return;charts.spot=new Chart(el,{type:'line',data:{labels:traj.labels,datasets:[{label:'Portfolio value',yAxisID:'y',data:traj.realValue.map(v=>Math.round(v)),borderColor:'#6b5ce7',backgroundColor:'rgba(107,92,231,.08)',borderWidth:1.8,pointRadius:0,fill:true,tension:.15},{label:'Monthly income',yAxisID:'y1',data:traj.realWithdrawal.map(v=>Math.round(v/12)),borderColor:'#4ecdc4',borderWidth:1.6,pointRadius:0,fill:false,tension:.15}]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},scales:{x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true}},y:{position:'left',title:{display:true,text:"Portfolio value (today's $)"},grid:{color:'rgba(30,30,46,.06)'},border:{display:false},ticks:{callback:v=>moneyK(v)}},y1:{position:'right',title:{display:true,text:'Income ($/month)'},grid:{display:false},border:{display:false},ticks:{callback:v=>moneyK(v)}}},plugins:{legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11}}}}}})}
+
+/* ── Worker ── */
+let worker=null;
+function initWorker(onResult,onSpotlight){
+  const poll=setInterval(()=>{
+    const el=document.getElementById('worker-src');
+    if(!el||!el.textContent.trim())return;
+    clearInterval(poll);
+    worker=new Worker(URL.createObjectURL(new Blob([el.textContent],{type:'text/javascript'})));
+    worker.onmessage=ev=>{if(ev.data.type==='result')onResult(ev.data);else if(ev.data.type==='spotlight')onSpotlight(ev.data)};
+  },50);
+}
+
+/* ── Helpers ── */
+function money(v){return '$'+Math.round(v).toLocaleString('en-US')}
+function pctFmt(v,d){return(v*100).toFixed(d??1)+'%'}
+function median(arr){const s=arr.slice().sort((a,b)=>a-b);return s[Math.floor(s.length/2)]}
+function passLabel(r){if(r.n_pass>=r.n_windows)return '100%';const s=(r.n_pass/r.n_windows*100).toFixed(1);return s==='100.0'?'99.9%':s+'%'}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+
+/* ── Alpine component ── */
+document.addEventListener('alpine:init',()=>{
+  Alpine.data('calculator',()=>({
+    showResults:false,loading:false,resultTab:'income',
+    showAdvanced:false,showCustomPortfolio:false,showHelp:false,spotIdx:null,
+    savings:1000000,years:30,goalPreset:'preserve',retainPct:100,
+    strategyPreset:'stocks',portfolio:[{id:'sp500_price',weight:100}],
+    floorMode:'usd',minFloorPct:4,minIncome:3000,pctFloor:4,
+    capMode:'usd',maxCapPct:9,maxIncome:12000,
+    lookback:1,recalc:1,
+    result:null,rows:[],spotlight:null,spotOptions:[],
+
+    get assets(){return ASSETS},
+    get assetGroups(){return assetGroupsList()},
+    groupAssets(group){return ASSETS.filter(a=>a.group===group)},
+    isInPortfolio(id){return this.portfolio.some(p=>p.id===id)},
+    get sleeves(){return calcSleeves(this.portfolio)},
+    get sleeveBarStyles(){const s=this.sleeves,t=s.total||1;return{sp:(s.sp/t*100).toFixed(1)+'%',bd:(s.bd/t*100).toFixed(1)+'%',gd:(s.gd/t*100).toFixed(1)+'%'}},
+    get allocNote(){
+      const s=this.sleeves;
+      if(s.total<=0)return 'Add holdings to see the simulation mix.';
+      const n=Math.round(s.sp)+'% stocks, '+Math.round(s.bd)+'% bonds, '+Math.round(s.gd)+'% gold';
+      const w=(Math.abs(s.total-100)>0.5)?' (will be rescaled to 100%)':'';
+      const g=s.gd>0?' Gold limits history to 1968\u20132023.':'';
+      return n+w+'.'+g;
+    },
+    get heroMonthly(){if(!this.rows.length)return '$0';return money(median(this.rows.map(r=>r.firstYearReal))/12)},
+    get heroPassRate(){return this.result?passLabel(this.result):'0%'},
+    get heroConfidence(){if(!this.result)return 'neutral';const r=this.result.n_pass/this.result.n_windows;if(r>=.999)return 'high';if(r>=.95)return 'good';if(r>=.85)return 'fair';return 'low'},
+    get periodCount(){return this.rows.length},
+    get failCount(){return this.rows.filter(r=>!r.passed).length},
+    get typicalAvgIncome(){if(!this.rows.length)return '$0/mo';return money(median(this.rows.map(r=>r.avgAnnualReal))/12)+'/mo'},
+    get worstCase(){if(!this.rows.length)return null;return this.rows.reduce((w,r)=>r.endRatio<w.endRatio?r:w,this.rows[0])},
+    get firstYear(){return this.rows.length?this.rows[0].start.slice(0,4):'1871'},
+    get summaryPhrase(){
+      if(!this.result||!this.rows.length)return '';
+      const b=this.result,n=this.rows.length;
+      const floor=this.floorMode==='usd'?money(b.D)+'/mo':b.aPct.toFixed(2)+'%/yr';
+      const cap=this.capMode==='usd'?money(b.C)+'/mo':b.bPct.toFixed(2)+'%/yr';
+      return 'Tested against '+n+' historical retirements spanning '+this.years+' years each. Floor: '+floor+'. Cap: '+cap+'. Sensitivity: '+b.x.toFixed(2)+'. '+passLabel(b)+' met the goal of retaining '+Math.round(this.retainPct)+'% of savings. These are ceilings \u2014 spending less is always safer.';
+    },
+
+    money,pctFmt,
+    setGoalPreset(p){this.goalPreset=p;if(p==='preserve')this.retainPct=100;else if(p==='spend')this.retainPct=0},
+    setStrategy(name){
+      this.strategyPreset=name;this.showCustomPortfolio=name==='custom';
+      if(name==='stocks')this.portfolio=[{id:'sp500_price',weight:100}];
+      else if(name==='balanced')this.portfolio=[{id:'total_us_market_vti',weight:60},{id:'ten_year_treasury_yield',weight:40}];
+      else if(name==='conservative')this.portfolio=[{id:'total_us_market_vti',weight:40},{id:'ten_year_treasury_yield',weight:40},{id:'gold_gld',weight:20}];
+    },
+    addAsset(id){if(!this.isInPortfolio(id))this.portfolio=[...this.portfolio,{id,weight:0}]},
+    removeAsset(id){this.portfolio=this.portfolio.filter(p=>p.id!==id)},
+    updateWeight(id,val){this.portfolio=this.portfolio.map(p=>p.id===id?{...p,weight:Math.max(0,parseFloat(val)||0)}:p)},
+    assetName(id){const a=assetById(id);return a?a.name:id},
+    assetTicker(id){const a=assetById(id);return a?a.ticker:''},
+    assetYears(id){const a=assetById(id);return a?a.years:''},
+    rowIncome(r){return money(r.firstYearReal/12)},
+    rowAvg(r){return money(r.avgAnnualReal/12)},
+    rowEnd(r){return(r.endRatio*100).toFixed(0)+'%'},
+
+    selectSpot(s){this.spotIdx=+s;if(worker)worker.postMessage({type:'spotlight',s:+s})},
+    selectSpotWorst(){const w=this.worstCase;if(w)this.selectSpot(w.s)},
+    selectSpotBest(){if(!this.rows.length)return;this.selectSpot(this.rows.reduce((b,r)=>r.endRatio>b.endRatio?r:b,this.rows[0]).s)},
+    selectSpotTypical(){if(!this.rows.length)return;this.selectSpot(this.rows[Math.floor(this.rows.length/2)].s)},
+
+    calculate(){
+      const s=this.sleeves;
+      if(s.sp+s.bd+s.gd<=0){this.portfolio=[{id:'sp500_price',weight:100}];return this.calculate()}
+      this.loading=true;this.showResults=false;
+      const msg={type:'run',floorMode:this.floorMode,capMode:this.capMode,
+        years:clamp(this.years,5,100),minA:clamp(this.minFloorPct,4,10),
+        dollarFloor:Math.max(0,this.minIncome),pctFloor:clamp(this.pctFloor,0,12),
+        pctCap:clamp(this.maxCapPct,.5,40),dollarCap:Math.max(0,this.maxIncome),
+        lookback:clamp(Math.round(this.lookback),1,120),recalc:clamp(Math.round(this.recalc),1,120),
+        nestEgg:Math.max(1000,this.savings),retain:clamp(this.retainPct,0,300),
+        wSp:s.sp,wBond:s.bd,wGold:s.gd};
+      setTimeout(()=>{if(worker)worker.postMessage(msg)},20);
+    },
+
+    _onResult(m){
+      this.loading=false;this.result=m.best;this.rows=m.rows||[];
+      this.showResults=true;this.resultTab='income';
+      if(!this.rows.length){destroyChart('inc');destroyChart('pre');destroyChart('spot');return}
+      this.spotOptions=this.rows.map(r=>({s:r.s,label:r.start+' \u2013 '+r.end}));
+      this.$nextTick(()=>{renderIncome('chartIncome',this.rows);renderPreserve('chartPreserve',this.rows,m.target);this.selectSpotWorst()});
+    },
+    _onSpotlight(m){this.spotlight=m.traj;this.$nextTick(()=>{renderSpotlight('chartSpotlight',m.traj)})},
+
+    init(){initWorker(m=>this._onResult(m),m=>this._onSpotlight(m))}
+  }));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Retirement Withdrawal Calculator</title>
+<meta name="description" content="Market-aware retirement withdrawal calculator stress-tested against 150+ years of real history.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0}
+:root{
+  --bg:#fefefe;--ink:#111;--body:#444;--muted:#777;--faint:#aaa;
+  --accent:#1a5632;--accent-light:#e8f2ec;--accent-mid:#2d7a4a;
+  --rule:#e0e0e0;--danger:#b91c1c;--warn:#92400e;
+}
+html{font-family:'Outfit',system-ui,sans-serif;color:var(--body);background:var(--bg);
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body{max-width:640px;margin:0 auto;padding:24px 20px 64px}
+h1,h2,h3{color:var(--ink);font-weight:600;line-height:1.2}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+hr{border:none;border-top:1px solid var(--rule);margin:48px 0}
+[x-cloak]{display:none!important}
+
+/* --- Inputs: bottom-line style --- */
+.field{margin-bottom:28px}
+.field-label{font-size:13px;font-weight:500;color:var(--ink);letter-spacing:.02em;margin-bottom:6px}
+.field-hint{font-size:12px;color:var(--muted);margin-bottom:8px}
+.input-line{display:flex;align-items:baseline;gap:4px;border-bottom:1.5px solid var(--rule);
+  padding:6px 0;transition:border-color .15s}
+.input-line:focus-within{border-color:var(--accent)}
+.input-line input{border:none;outline:none;background:transparent;font:inherit;font-size:16px;
+  font-weight:500;color:var(--ink);width:100%;padding:0;font-variant-numeric:tabular-nums}
+.input-line input::-webkit-inner-spin-button{-webkit-appearance:none}
+.input-line input[type=number]{-moz-appearance:textfield}
+.input-line .pre,.input-line .suf{font-size:14px;color:var(--muted);font-weight:400;flex-shrink:0;user-select:none}
+
+/* --- Range slider with green fill --- */
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:3px;
+  background:var(--rule);border-radius:2px;outline:none;margin:10px 0 4px;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;
+  border-radius:50%;background:var(--accent);border:2px solid var(--bg);
+  box-shadow:0 0 0 1px var(--accent);cursor:pointer;transition:transform .1s}
+input[type=range]::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+  background:var(--accent);border:2px solid var(--bg);box-shadow:0 0 0 1px var(--accent);cursor:pointer}
+input[type=range]::-moz-range-progress{background:var(--accent);height:3px;border-radius:2px}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);
+  font-variant-numeric:tabular-nums}
+
+/* --- Pills / option buttons --- */
+.pill{display:inline-flex;align-items:center;padding:6px 14px;font-size:13px;font-weight:500;
+  border:1px solid var(--rule);background:transparent;color:var(--body);cursor:pointer;
+  border-radius:3px;transition:all .12s;user-select:none}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* --- CTA button --- */
+.cta{display:block;width:100%;padding:14px;font:inherit;font-size:15px;font-weight:600;
+  color:#fff;background:var(--accent);border:none;border-radius:3px;cursor:pointer;
+  letter-spacing:.01em;transition:background .15s}
+.cta:hover{background:var(--accent-mid)}
+.cta:disabled{opacity:.5;cursor:not-allowed}
+
+/* --- Results --- */
+.hero-num{font-size:clamp(2.4rem,8vw,3.6rem);font-weight:700;color:var(--ink);
+  letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;margin:24px 0}
+.stat{padding:16px 0}
+.stat:not(:first-child){padding-left:20px;border-left:1px solid var(--rule)}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.stat-val{font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:2px}
+.badge-ok{background:var(--accent-light);color:var(--accent)}
+.badge-no{background:#fef2f2;color:var(--danger)}
+
+/* --- Tabs --- */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule)}
+.tab{padding:10px 16px;font:inherit;font-size:13px;font-weight:500;color:var(--muted);
+  background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;
+  transition:color .12s,border-color .12s;margin-bottom:-1px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* --- Chart container --- */
+.chart-wrap{position:relative;height:260px;margin:16px 0}
+
+/* --- Table --- */
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin:12px 0}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+thead th{text-align:left;font-weight:500;color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:.05em;padding:8px 10px;border-bottom:1px solid var(--rule)}
+tbody td{padding:7px 10px;border-bottom:1px solid #f0f0f0;color:var(--body)}
+tbody tr.fail td{color:var(--danger)}
+tbody tr:hover td{background:#fafafa}
+select{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--rule);
+  border-radius:3px;background:var(--bg);color:var(--ink);outline:none;max-width:100%}
+select:focus{border-color:var(--accent)}
+.chip{font:inherit;font-size:12px;font-weight:500;padding:4px 10px;border:1px solid var(--rule);
+  border-radius:3px;background:transparent;color:var(--body);cursor:pointer;transition:all .12s}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* --- Spinner --- */
+.spin{width:18px;height:18px;border:2px solid var(--rule);border-top-color:var(--accent);
+  border-radius:50%;animation:sp .6s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+/* --- Toggle link --- */
+.toggle-link{font-size:13px;font-weight:500;color:var(--accent);cursor:pointer;
+  background:none;border:none;padding:0;font-family:inherit}
+.toggle-link:hover{text-decoration:underline}
+
+/* --- Utilities --- */
+.tnum{font-variant-numeric:tabular-nums}
+.flex{display:flex}.items-center{align-items:center}.gap-2{gap:8px}.gap-3{gap:12px}
+.flex-wrap{flex-wrap:wrap}.mt-1{margin-top:4px}.mt-2{margin-top:8px}.mt-3{margin-top:12px}
+.mt-4{margin-top:16px}
+@media(max-width:480px){
+  .stat-row{grid-template-columns:1fr;gap:0}
+  .stat:not(:first-child){border-left:none;padding-left:0;border-top:1px solid var(--rule)}
+  body{padding:16px 16px 48px}
+}
+</style>
+</head>
+<body>
+<script>
+fetch('/worker-data.js').then(r => r.text()).then(src => {
+  document.getElementById('worker-src').textContent = src;
+});
+</script>
+<script id="worker-src" type="javascript/worker"></script>
+
+<div x-data="calc" x-cloak>
+
+<!-- ── Header ── -->
+<header style="padding:32px 0 0">
+  <h1 style="font-size:clamp(1.6rem,5vw,2.2rem);letter-spacing:-.03em;font-weight:700">Retirement Calculator</h1>
+  <p style="margin-top:8px;color:var(--muted);font-size:14px;max-width:440px">
+    How much can you safely withdraw? Tested against 150+ years of real market data.</p>
+</header>
+
+<hr>
+
+<!-- ── Section 1: Your situation ── -->
+<section>
+  <h2 style="font-size:17px;margin-bottom:24px">Your situation</h2>
+
+  <div class="field">
+    <div class="field-label">Retirement savings</div>
+    <div class="field-hint">Total nest egg in today's dollars</div>
+    <div class="input-line" style="max-width:200px">
+      <span class="pre">$</span>
+      <input type="number" min="10000" step="10000" x-model.number="savings" aria-label="Retirement savings">
+    </div>
+    <input type="range" min="50000" max="5000000" step="50000" x-model.number="savings"
+      :style="rangeStyle(savings,50000,5000000)" aria-label="Savings slider">
+    <div class="range-labels"><span>$50k</span><span>$5M</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">How long should it last?</div>
+    <div class="flex items-center gap-3">
+      <input type="range" min="5" max="60" step="1" x-model.number="years"
+        style="flex:1" :style="rangeStyle(years,5,60)" aria-label="Years">
+      <span class="tnum" style="font-size:22px;font-weight:600;color:var(--ink);min-width:56px;text-align:right"
+        x-text="years+' yr'"></span>
+    </div>
+    <div class="range-labels"><span>5</span><span>60</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">What should remain at the end?</div>
+    <div class="flex gap-2 flex-wrap mt-1">
+      <button class="pill" :class="goalPreset==='preserve'&&'on'" @click="setGoal('preserve')">Keep it all</button>
+      <button class="pill" :class="goalPreset==='spend'&&'on'" @click="setGoal('spend')">Spend it down</button>
+      <button class="pill" :class="goalPreset==='custom'&&'on'" @click="setGoal('custom')">Custom</button>
+    </div>
+    <template x-if="goalPreset==='custom'">
+      <div class="input-line mt-2" style="max-width:100px">
+        <input type="number" min="0" max="300" step="5" x-model.number="retainPct" aria-label="Retain %">
+        <span class="suf">%</span>
+      </div>
+    </template>
+  </div>
+</section>
+
+<hr>
+
+<!-- ── Section 2: Portfolio ── -->
+<section>
+  <h2 style="font-size:17px;margin-bottom:24px">Portfolio strategy</h2>
+  <div class="flex gap-2 flex-wrap">
+    <template x-for="s in strategies" :key="s.id">
+      <button class="pill" :class="strategyPreset===s.id&&'on'" @click="setStrategy(s.id)" x-text="s.label"></button>
+    </template>
+  </div>
+  <p style="font-size:12px;color:var(--muted);margin-top:10px" x-text="allocNote"></p>
+</section>
+
+<hr>
+
+<!-- ── Section 3: Withdrawal rules ── -->
+<section>
+  <h2 style="font-size:17px;margin-bottom:24px">Withdrawal rules</h2>
+
+  <div class="field">
+    <div class="field-label">Minimum monthly income</div>
+    <div class="field-hint">The least you need each month</div>
+    <div class="input-line" style="max-width:180px">
+      <span class="pre">$</span>
+      <input type="number" min="0" step="100" x-model.number="minIncome" aria-label="Min income">
+    </div>
+    <input type="range" min="0" max="15000" step="100" x-model.number="minIncome"
+      :style="rangeStyle(minIncome,0,15000)" aria-label="Min income slider">
+    <div class="range-labels"><span>$0</span><span>$15k</span></div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">Maximum monthly income</div>
+    <div class="field-hint">Cap even in great markets</div>
+    <div class="input-line" style="max-width:180px">
+      <span class="pre">$</span>
+      <input type="number" min="0" step="100" x-model.number="maxIncome" aria-label="Max income">
+    </div>
+    <input type="range" min="1000" max="50000" step="500" x-model.number="maxIncome"
+      :style="rangeStyle(maxIncome,1000,50000)" aria-label="Max income slider">
+    <div class="range-labels"><span>$1k</span><span>$50k</span></div>
+  </div>
+
+  <button class="toggle-link" @click="showAdv=!showAdv" x-text="showAdv?'Hide advanced':'Advanced options'"></button>
+  <template x-if="showAdv">
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)">
+      <div class="field">
+        <div class="field-label" style="margin-bottom:8px">Floor mode</div>
+        <div class="flex gap-2 flex-wrap">
+          <template x-for="m in [{id:'usd',l:'Dollar'},{id:'pct',l:'Percentage'},{id:'both',l:'Both'}]" :key="m.id">
+            <button class="pill" style="font-size:12px;padding:4px 10px" :class="floorMode===m.id&&'on'"
+              @click="floorMode=m.id" x-text="m.l"></button>
+          </template>
+        </div>
+        <template x-if="floorMode==='pct'||floorMode==='both'">
+          <div class="input-line mt-2" style="max-width:120px">
+            <input type="number" min="0" max="12" step=".05" x-model.number="minFloorPct" aria-label="Floor %">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+        <template x-if="floorMode==='both'">
+          <div class="input-line mt-1" style="max-width:120px">
+            <input type="number" min="0" max="12" step=".05" x-model.number="pctFloor" aria-label="Pct floor">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+      </div>
+      <div class="field">
+        <div class="field-label" style="margin-bottom:8px">Cap mode</div>
+        <div class="flex gap-2 flex-wrap">
+          <template x-for="m in [{id:'usd',l:'Dollar'},{id:'pct',l:'Percentage'},{id:'both',l:'Both'}]" :key="m.id">
+            <button class="pill" style="font-size:12px;padding:4px 10px" :class="capMode===m.id&&'on'"
+              @click="capMode=m.id" x-text="m.l"></button>
+          </template>
+        </div>
+        <template x-if="capMode==='pct'||capMode==='both'">
+          <div class="input-line mt-2" style="max-width:120px">
+            <input type="number" min=".5" max="40" step=".25" x-model.number="maxCapPct" aria-label="Cap %">
+            <span class="suf">%/yr</span>
+          </div>
+        </template>
+      </div>
+      <div class="flex gap-3">
+        <div class="field" style="flex:1">
+          <div class="field-label">Lookback</div>
+          <div class="input-line">
+            <input type="number" min="1" max="120" x-model.number="lookback" aria-label="Lookback">
+            <span class="suf">mo</span>
+          </div>
+        </div>
+        <div class="field" style="flex:1">
+          <div class="field-label">Recalc every</div>
+          <div class="input-line">
+            <input type="number" min="1" max="120" x-model.number="recalc" aria-label="Recalc">
+            <span class="suf">mo</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--rule)">
+    <button class="cta" @click="calculate()" :disabled="loading">
+      <span x-show="!loading">Calculate</span>
+      <span x-show="loading" x-cloak class="flex items-center" style="justify-content:center;gap:8px">
+        <span class="spin"></span> Running...
+      </span>
+    </button>
+  </div>
+</section>
+
+<!-- ── Empty state ── -->
+<template x-if="!showResults&&!loading">
+  <div style="text-align:center;padding:48px 0;color:var(--muted);font-size:13px">
+    Configure above, then calculate.
+  </div>
+</template>
+
+<!-- ── Loading ── -->
+<template x-if="loading">
+  <div style="text-align:center;padding:48px 0" aria-live="polite">
+    <span class="spin" style="width:24px;height:24px;border-width:2.5px"></span>
+    <p style="margin-top:12px;font-size:13px;color:var(--muted)">Simulating...</p>
+  </div>
+</template>
+
+<!-- ── Results ── -->
+<template x-if="showResults&&rows.length>0">
+  <div>
+    <hr>
+    <div style="padding:8px 0 0">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:8px">
+        Safe withdrawal</div>
+      <div class="hero-num" x-text="heroMonthly+'/mo'"></div>
+      <p style="margin-top:12px;font-size:14px;color:var(--body);max-width:420px">
+        Worked in <strong style="color:var(--ink)" x-text="heroPassRate"></strong>
+        of <span x-text="periodCount"></span> simulated retirements since
+        <span x-text="firstYear"></span>.
+      </p>
+      <span class="badge mt-2" :class="result.n_pass>=result.n_windows?'badge-ok':'badge-no'"
+        x-text="heroPassRate+' success rate'" style="margin-top:12px"></span>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">Starting</div>
+        <div class="stat-val" x-text="heroMonthly+'/mo'"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Average</div>
+        <div class="stat-val" x-text="typicalAvg"></div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Worst end</div>
+        <div class="stat-val" x-text="worstCase?pctFmt(worstCase.endRatio,0)+' left':'--'"></div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:var(--muted);margin:8px 0 0;max-width:480px;line-height:1.6"
+      x-text="summaryPhrase"></p>
+
+    <hr>
+
+    <!-- Charts -->
+    <div class="tabs">
+      <button class="tab" :class="resultTab==='income'&&'on'" @click="resultTab='income'">Income</button>
+      <button class="tab" :class="resultTab==='preserve'&&'on'" @click="resultTab='preserve'">Savings left</button>
+      <button class="tab" :class="resultTab==='spotlight'&&'on'" @click="resultTab='spotlight'">Deep dive</button>
+    </div>
+
+    <div x-show="resultTab==='income'" x-cloak>
+      <p class="field-hint mt-3">Monthly withdrawal across every historical start date.</p>
+      <div class="chart-wrap"><canvas id="chartIncome"></canvas></div>
+    </div>
+    <div x-show="resultTab==='preserve'" x-cloak>
+      <p class="field-hint mt-3">Savings remaining at the end. <span style="color:var(--danger);font-weight:600">Red</span> = missed goal.</p>
+      <div class="chart-wrap"><canvas id="chartPreserve"></canvas></div>
+    </div>
+    <div x-show="resultTab==='spotlight'" x-cloak>
+      <p class="field-hint mt-3">A single retirement, month by month.</p>
+      <div class="flex gap-2 flex-wrap items-center mt-2">
+        <select @change="selectSpot($event.target.value)" :value="spotIdx" aria-label="Select period">
+          <template x-for="opt in spotOptions" :key="opt.s">
+            <option :value="opt.s" x-text="opt.label" :selected="spotIdx===opt.s"></option>
+          </template>
+        </select>
+        <button class="chip" @click="selectSpotWorst()">Worst</button>
+        <button class="chip" @click="selectSpotBest()">Best</button>
+        <button class="chip" @click="selectSpotTypical()">Typical</button>
+      </div>
+      <div class="chart-wrap"><canvas id="chartSpotlight"></canvas></div>
+    </div>
+
+    <hr>
+
+    <!-- Table -->
+    <details>
+      <summary class="toggle-link" style="cursor:pointer;list-style:none">
+        See all <span x-text="periodCount"></span> simulated retirements
+      </summary>
+      <div style="margin-top:16px">
+        <template x-if="failCount===0">
+          <p style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px">Every period met the goal.</p>
+        </template>
+        <template x-if="failCount>0">
+          <p style="font-size:13px;font-weight:600;color:var(--danger);margin-bottom:12px" x-text="failCount+' fell short.'"></p>
+        </template>
+        <div class="tbl-wrap" tabindex="0" role="region" aria-label="Results table">
+          <table>
+            <thead><tr><th>Started</th><th>Ended</th><th>1st yr</th><th>Avg</th><th>Left</th><th>Goal</th></tr></thead>
+            <tbody>
+              <template x-for="r in rows" :key="r.s">
+                <tr :class="!r.passed&&'fail'">
+                  <td x-text="r.start"></td><td x-text="r.end"></td>
+                  <td x-text="rowIncome(r)"></td><td x-text="rowAvg(r)"></td>
+                  <td x-text="rowEnd(r)"></td>
+                  <td><span class="badge" :class="r.passed?'badge-ok':'badge-no'" x-text="r.passed?'met':'short'"></span></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </details>
+  </div>
+</template>
+
+<template x-if="showResults&&rows.length===0">
+  <div style="padding:24px 0">
+    <hr>
+    <p style="font-size:14px;font-weight:600;color:var(--warn);padding-top:24px">
+      Not enough history for <span x-text="years"></span> years. Shorten the retirement or change the portfolio.
+    </p>
+  </div>
+</template>
+
+<!-- ── Footer ── -->
+<hr>
+<footer style="font-size:11px;color:var(--faint);padding-bottom:8px">
+  Data: S&P 500, 10-Year Treasury, Gold, CPI since 1871. All values inflation-adjusted.
+</footer>
+
+</div>
+
+<script>
+document.addEventListener('alpine:init',()=>{
+  Alpine.data('calc',()=>({
+    showResults:false, loading:false, resultTab:'income',
+    showAdv:false, spotIdx:null, worker:null,
+    savings:1000000, years:30, goalPreset:'preserve', retainPct:100,
+    strategyPreset:'stocks',
+    floorMode:'usd', minFloorPct:4, minIncome:3000, pctFloor:4,
+    capMode:'usd', maxCapPct:9, maxIncome:12000,
+    lookback:1, recalc:1,
+    result:null, rows:[], spotlight:null, spotOptions:[],
+    strategies:[
+      {id:'stocks',label:'All stocks'},
+      {id:'balanced',label:'60/40'},
+      {id:'conservative',label:'Conservative'},
+    ],
+    charts:{inc:null,pre:null,spot:null},
+
+    get wSp(){
+      if(this.strategyPreset==='stocks')return 100;
+      if(this.strategyPreset==='balanced')return 60;
+      if(this.strategyPreset==='conservative')return 40;
+      return 100;
+    },
+    get wBond(){
+      if(this.strategyPreset==='balanced')return 40;
+      if(this.strategyPreset==='conservative')return 40;
+      return 0;
+    },
+    get wGold(){
+      if(this.strategyPreset==='conservative')return 20;
+      return 0;
+    },
+    get allocNote(){
+      return this.wSp+'% stocks, '+this.wBond+'% bonds, '+this.wGold+'% gold'
+        +(this.wGold>0?' (gold limits history to 1968+)':'');
+    },
+    get heroMonthly(){
+      if(!this.rows.length)return '$0';
+      return this.money(this.median(this.rows.map(r=>r.firstYearReal))/12);
+    },
+    get heroPassRate(){
+      if(!this.result)return '0%';
+      return this.passLabel(this.result);
+    },
+    get periodCount(){return this.rows.length},
+    get failCount(){return this.rows.filter(r=>!r.passed).length},
+    get typicalAvg(){
+      if(!this.rows.length)return '$0/mo';
+      return this.money(this.median(this.rows.map(r=>r.avgAnnualReal))/12)+'/mo';
+    },
+    get worstCase(){
+      if(!this.rows.length)return null;
+      return this.rows.reduce((w,r)=>r.endRatio<w.endRatio?r:w,this.rows[0]);
+    },
+    get firstYear(){return this.rows.length?this.rows[0].start.slice(0,4):'1871'},
+    get summaryPhrase(){
+      if(!this.result||!this.rows.length)return '';
+      const b=this.result,n=this.rows.length;
+      const floor=this.floorMode==='usd'?this.money(b.D)+'/mo':b.aPct.toFixed(2)+'%/yr';
+      const cap=this.capMode==='usd'?this.money(b.C)+'/mo':b.bPct.toFixed(2)+'%/yr';
+      return 'Tested against '+n+' historical retirements spanning '+this.years+' years each. '
+        +'Floor: '+floor+'. Cap: '+cap+'. Sensitivity: '+b.x.toFixed(2)+'. '
+        +this.passLabel(b)+' met the goal of retaining '+Math.round(this.retainPct)+'% of savings. '
+        +'These are ceilings \u2014 spending less is always safer.';
+    },
+
+    money(v){return '$'+Math.round(v).toLocaleString('en-US')},
+    moneyK(v){
+      if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(1)+'M';
+      if(Math.abs(v)>=1000)return '$'+(Math.round(v/100)/10)+'k';
+      return '$'+Math.round(v);
+    },
+    pctFmt(v,d){return(v*100).toFixed(d??1)+'%'},
+    median(arr){const s=arr.slice().sort((a,b)=>a-b);return s[Math.floor(s.length/2)]},
+    passLabel(r){
+      if(r.n_pass>=r.n_windows)return '100%';
+      const s=(r.n_pass/r.n_windows*100).toFixed(1);
+      return s==='100.0'?'99.9%':s+'%';
+    },
+    clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))},
+
+    rangeStyle(val,min,max){
+      const pct=((val-min)/(max-min))*100;
+      return 'background:linear-gradient(to right,var(--accent) '+pct+'%,var(--rule) '+pct+'%)';
+    },
+
+    setGoal(p){
+      this.goalPreset=p;
+      if(p==='preserve')this.retainPct=100;
+      else if(p==='spend')this.retainPct=0;
+    },
+    setStrategy(name){this.strategyPreset=name},
+    rowIncome(r){return this.money(r.firstYearReal/12)},
+    rowAvg(r){return this.money(r.avgAnnualReal/12)},
+    rowEnd(r){return(r.endRatio*100).toFixed(0)+'%'},
+
+    selectSpot(s){this.spotIdx=+s;if(this.worker)this.worker.postMessage({type:'spotlight',s:+s})},
+    selectSpotWorst(){const w=this.worstCase;if(w)this.selectSpot(w.s)},
+    selectSpotBest(){if(!this.rows.length)return;this.selectSpot(this.rows.reduce((b,r)=>r.endRatio>b.endRatio?r:b,this.rows[0]).s)},
+    selectSpotTypical(){if(!this.rows.length)return;this.selectSpot(this.rows[Math.floor(this.rows.length/2)].s)},
+
+    calculate(){
+      this.loading=true;this.showResults=false;
+      const msg={
+        type:'run',floorMode:this.floorMode,capMode:this.capMode,
+        years:this.clamp(this.years,5,100),minA:this.clamp(this.minFloorPct,4,10),
+        dollarFloor:Math.max(0,this.minIncome),pctFloor:this.clamp(this.pctFloor,0,12),
+        pctCap:this.clamp(this.maxCapPct,0.5,40),dollarCap:Math.max(0,this.maxIncome),
+        lookback:this.clamp(Math.round(this.lookback),1,120),
+        recalc:this.clamp(Math.round(this.recalc),1,120),
+        nestEgg:Math.max(1000,this.savings),retain:this.clamp(this.retainPct,0,300),
+        wSp:this.wSp,wBond:this.wBond,wGold:this.wGold,
+      };
+      setTimeout(()=>{if(this.worker)this.worker.postMessage(msg)},20);
+    },
+
+    destroyChart(name){if(this.charts[name]){this.charts[name].destroy();this.charts[name]=null}},
+    destroyAll(){this.destroyChart('inc');this.destroyChart('pre');this.destroyChart('spot')},
+
+    renderIncome(){
+      this.destroyChart('inc');
+      const el=document.getElementById('chartIncome');if(!el)return;
+      this.charts.inc=new Chart(el,{type:'line',data:{
+        labels:this.rows.map(r=>r.start),datasets:[
+          {label:'Avg monthly',data:this.rows.map(r=>Math.round(r.avgAnnualReal/12)),
+            borderColor:'var(--accent)',backgroundColor:'rgba(26,86,50,.08)',borderWidth:1.6,pointRadius:0,fill:true,tension:.15},
+          {label:'First-year monthly',data:this.rows.map(r=>Math.round(r.firstYearReal/12)),
+            borderColor:'#555',backgroundColor:'rgba(0,0,0,.04)',borderWidth:1.2,pointRadius:0,fill:true,tension:.15},
+        ]},options:this.chartOpts('Withdrawal ($/month, today\'s $)',v=>this.moneyK(v))});
+    },
+    renderPreserve(target){
+      this.destroyChart('pre');
+      const el=document.getElementById('chartPreserve');if(!el)return;
+      this.charts.pre=new Chart(el,{type:'line',data:{
+        labels:this.rows.map(r=>r.start),datasets:[
+          {label:'Savings remaining (%)',data:this.rows.map(r=>+(r.endRatio*100).toFixed(1)),
+            borderColor:'var(--accent)',backgroundColor:'rgba(26,86,50,.06)',borderWidth:1.6,fill:true,tension:.15,
+            pointRadius:this.rows.map(r=>r.passed?0:3),
+            pointBackgroundColor:this.rows.map(r=>r.passed?'transparent':'#b91c1c'),
+            pointBorderColor:this.rows.map(r=>r.passed?'transparent':'#b91c1c')},
+          {label:'Goal ('+Math.round(target*100)+'%)',data:this.rows.map(()=>target*100),
+            borderColor:'#aaa',borderWidth:1.2,borderDash:[6,4],pointRadius:0,fill:false},
+        ]},options:this.chartOpts('Inflation-adjusted savings left',v=>v+'%')});
+    },
+    renderSpotlight(traj){
+      this.destroyChart('spot');
+      const el=document.getElementById('chartSpotlight');if(!el)return;
+      this.charts.spot=new Chart(el,{type:'line',data:{
+        labels:traj.labels,datasets:[
+          {label:'Portfolio value',yAxisID:'y',data:traj.realValue.map(v=>Math.round(v)),
+            borderColor:'var(--accent)',backgroundColor:'rgba(26,86,50,.08)',borderWidth:1.8,pointRadius:0,fill:true,tension:.15},
+          {label:'Monthly income',yAxisID:'y1',data:traj.realWithdrawal.map(v=>Math.round(v/12)),
+            borderColor:'#555',borderWidth:1.4,pointRadius:0,fill:false,tension:.15},
+        ]},options:{responsive:true,maintainAspectRatio:false,animation:false,
+          interaction:{mode:'index',intersect:false},
+          scales:{
+            x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true}},
+            y:{position:'left',title:{display:true,text:"Portfolio (today's $)"},grid:{color:'#f0f0f0'},border:{display:false},ticks:{callback:v=>this.moneyK(v)}},
+            y1:{position:'right',title:{display:true,text:'Income ($/mo)'},grid:{display:false},border:{display:false},ticks:{callback:v=>this.moneyK(v)}},
+          },
+          plugins:{legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11,family:'Outfit'}}}},
+        }});
+    },
+    chartOpts(yTitle,yFmt){return{responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true}},
+        y:{title:{display:true,text:yTitle},grid:{color:'#f0f0f0'},border:{display:false},ticks:{callback:v=>yFmt(v)}},
+      },
+      plugins:{legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11,family:'Outfit'}}},
+        tooltip:{callbacks:{title:items=>'Retired '+items[0].label}}},
+    }},
+
+    _onResult(m){
+      this.loading=false;this.result=m.best;this.rows=m.rows||[];
+      this.showResults=true;this.resultTab='income';
+      if(!this.rows.length){this.destroyAll();return}
+      this.spotOptions=this.rows.map(r=>({s:r.s,label:r.start+' \u2013 '+r.end}));
+      this._target=m.target;
+      this.$nextTick(()=>{
+        this.renderIncome();
+        this.renderPreserve(m.target);
+        this.selectSpotWorst();
+      });
+    },
+    _onSpotlight(m){
+      this.spotlight=m.traj;
+      this.$nextTick(()=>{this.renderSpotlight(m.traj)});
+    },
+
+    init(){
+      const el=document.getElementById('worker-src');
+      if(!el)return;
+      const check=()=>{
+        if(el.textContent.trim().length>0){
+          this.worker=new Worker(URL.createObjectURL(new Blob([el.textContent],{type:'text/javascript'})));
+          this.worker.onmessage=(ev)=>{
+            if(ev.data.type==='result')this._onResult(ev.data);
+            else if(ev.data.type==='spotlight')this._onSpotlight(ev.data);
+          };
+        } else { setTimeout(check,50); }
+      };
+      check();
+    },
+  }));
+});
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+</body>
+</html>
