@@ -1,0 +1,84 @@
+# Retirement Withdrawal Calculator
+# https://github.com/YidiDev/retirement-planning-calculator
+
+> This is an open-source retirement withdrawal calculator that stress-tests
+> flexible withdrawal strategies against 150+ years of real U.S. market history.
+
+## What this tool does
+
+This calculator helps people plan retirement withdrawals by replaying a
+configurable strategy through every starting month in U.S. market history
+since 1871. The user sets:
+
+- Retirement savings (nest egg)
+- Retirement length (5-60 years)
+- Goal (preserve capital, spend it down, or custom retention %)
+- Portfolio allocation (stocks, bonds, gold, or custom mix)
+- Withdrawal floor (minimum monthly income)
+- Withdrawal cap (maximum monthly income)
+
+The calculator optimizes a "sensitivity" parameter that determines how
+strongly withdrawals react to recent market performance, then reports:
+
+- Median safe monthly withdrawal
+- Historical success rate (% of periods that met the goal)
+- Income charts across all historical periods
+- Capital preservation chart
+- Spotlight on individual retirement periods (worst, best, typical)
+- Full table of every simulated retirement
+
+## How the simulation works
+
+Each month, the retiree withdraws a percentage of their current portfolio.
+That percentage flexes between a floor and a cap based on recent market
+returns. The formula:
+
+    raw_rate = sensitivity × lookback_return × 12 / lookback_months
+    withdrawal_rate = clamp(raw_rate, floor, cap)
+
+The withdrawal is the maximum of:
+- The percentage-based amount (rate × portfolio / 12)
+- The fixed dollar floor (if set)
+
+And the minimum of:
+- The withdrawal amount
+- The fixed dollar cap (if set)
+
+## Data sources
+
+- U.S. Equity: S&P 500 total return (monthly, 1871-2023) from Robert Shiller
+- Treasury Bonds: 10-year constant maturity return (monthly, 1871-2023)
+- Gold: monthly prices (free-market era, 1968-2023)
+- Inflation: CPI-U for real-return calculations
+
+The simulation maps all user-selected assets into three "sleeves":
+equity, bonds, and gold. The portfolio allocation determines the
+blend of these three return streams.
+
+## Technical architecture
+
+- Frontend: Alpine.js for reactivity, Chart.js for charts
+- Styling: Tailwind CSS v4 with custom warm paper design
+- Computation: Web Worker running grid search + refinement optimizer
+- Build: Vite (dev dependency only, not in production output)
+- Data pipeline: Python scripts for Yahoo Finance / FRED collection
+
+## Key URLs
+
+- Calculator: /
+- Privacy Policy: /privacy
+- Terms of Use: /terms
+- Source code: https://github.com/YidiDev/retirement-planning-calculator
+- Issues: https://github.com/YidiDev/retirement-planning-calculator/issues
+
+## License
+
+MIT License. See /LICENSE in the repository.
+
+## Limitations
+
+- Historical backtest only — does not predict future performance
+- Taxes, fees, and fund expenses are not modeled
+- Assumes monthly rebalancing to target allocation
+- Gold data limited to 1968+ (pre-1968 was gold standard)
+- Not financial advice — consult a qualified advisor

@@ -1,86 +1,95 @@
-# Retirement Planning Calculator
+# Retirement Withdrawal Calculator
 
-A retirement withdrawal calculator and backtesting toolkit. The repo contains a browser-based calculator plus Python scripts for collecting market data, building monthly datasets, and running optimization experiments.
+A flexible, market-aware retirement withdrawal calculator stress-tested against 150+ years of real U.S. market history. Built with Alpine.js, Chart.js, Tailwind CSS v4, and a Web Worker-based simulation engine.
 
-## What Is Here
+[Try it live](https://yididev.github.io/retirement-planning-calculator/) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
 
-- `retirement_calculator.html`: standalone calculator UI with an embedded Web Worker.
-- `collect_market_data.py`: configurable market-data collector for Yahoo Finance and FRED.
-- `data_sources.json`: the asset universe to collect.
-- `build_dataset.py`: legacy Shiller dataset cleaner for the original S&P 500-only workflow.
-- `retirement_optimizer.py`: legacy optimizer/backtester for the original monthly S&P 500 dataset.
+## What It Does
 
-## Data Coverage
+Set your savings, timeline, portfolio mix, and withdrawal rules. The calculator replays your plan through every starting month since 1871 and reports how it would have held up. Results include monthly income estimates, success rates, interactive charts, and a full historical period table.
 
-The new collection pipeline starts with these groups:
-
-- S&P 500 headline, total return, equal weight, style/factor, dividend, and sector ETF/index proxies.
-- Full-market indexes and ETF proxies, including Wilshire 5000, VTI, ITOT, IWV, IWB, and SCHB.
-- REIT data, including broad U.S., international, and residential/specialized proxies.
-- Bonds, gold, international developed markets, emerging markets, and CPI.
-
-Most investable variants use ETF adjusted-close data because official long-run total-return index licensing is limited. The config marks those rows as ETF proxies and records shorter history where relevant.
-
-## Setup
+## Quick Start
 
 ```bash
+# Clone
+git clone https://github.com/YidiDev/retirement-planning-calculator.git
+cd retirement-planning-calculator
+
+# Python environment (for data collection)
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
+
+# Node environment (for build and tests)
+npm install
+
+# Build and serve
+npm run build
+npm run dev
 ```
 
-## Collect Market Data
+Open `http://localhost:8080` in your browser.
 
-Collect everything in `data_sources.json`:
+## Scripts
 
-```bash
-python collect_market_data.py --refresh
+| Command | What it does |
+|---------|-------------|
+| `npm run dev` | Build and serve from `dist/` on port 8080 |
+| `npm run build` | Production build to `dist/` |
+| `npm run build:prod` | Refresh market data + production build |
+| `npm test` | Run all checks, unit tests, and accessibility tests |
+| `npm run data:refresh` | Download latest market data from Yahoo/FRED |
+
+## Environment Variables
+
+Copy `.env.example` and fill in values before deploying:
+
+| Variable | Purpose |
+|----------|---------|
+| `GA_MEASUREMENT_ID` | Google Analytics 4 measurement ID |
+| `SENTRY_DSN` | Sentry error tracking DSN |
+| `FRED_API_KEY` | Optional FRED API key for data collection |
+
+## Architecture
+
+```
+index.html            Alpine.js markup (warm paper design)
+src/
+  main.js             Entry: Alpine + Sentry + GA init
+  app.js              Calculator Alpine component (state, methods, workers)
+  charts.js           Chart.js rendering (income, preservation, spotlight)
+  analytics.js        GA4 custom event tracking (30+ events)
+  sentry.js           Silent Sentry error capture
+  styles.css          Tailwind v4 + Newsreader/Source Sans 3 design system
+  worker.js           Web Worker with embedded 1871-2023 market data
 ```
 
-Collect only specific series:
+**Build pipeline:** Vite builds `src/` into a single JS bundle + CSS bundle in `dist/`. The worker source is inlined into `index.html` at build time. No Vite client code ships to production.
 
-```bash
-python collect_market_data.py --only sp500_price total_us_market_vti us_reit_vnq cpi_us --refresh
-```
+**Data pipeline:** `collect_market_data.py` pulls from Yahoo Finance and FRED into `data/raw/` and normalizes to `data/processed/`. 39 sources across U.S. equities, bonds, gold, REITs, international, and CPI.
 
-Outputs:
+## Data Sources
 
-- `data/raw/<id>.csv`: raw source pull.
-- `data/processed/<id>_monthly.csv`: month-end normalized values, monthly returns, and a normalized index.
-- `data/catalog.json`: generated metadata, row counts, first/last month, and any source errors.
+The calculator's embedded simulation uses three historical return streams:
+- **U.S. Equity** — S&P 500 total return (monthly, since 1871)
+- **Treasury Bonds** — 10-year constant maturity (monthly, since 1871)
+- **Gold** — free-market era (monthly, 1968+)
+- **Inflation** — CPI-U for real-return calculations
 
-FRED works through its public CSV endpoint by default. If you want to use the FRED API, set `FRED_API_KEY` before running the collector.
+The portfolio builder maps user-selected assets into these sleeves. The data collection pipeline supports 39 additional sources for future modeling.
 
-## Add More Data Sources
+## Versioning
 
-Add a row to `data_sources.json` with:
+The project uses a `VERSION` file with semver (`MAJOR.MINOR.PATCH`). PRs into `staging` or `main` auto-bump the patch version if the incoming branch hasn't already bumped it.
 
-- `id`: stable machine-readable id.
-- `name`: human-readable name.
-- `group`: category such as `s_and_p_500`, `full_market_indexes`, or `reits`.
-- `source`: `yahoo` or `fred`.
-- `ticker` or `series_id`: source symbol.
-- `asset_class`, `return_type`, and `notes`: metadata for downstream modeling.
+## Contributing
 
-Then run:
+See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and development workflow.
 
-```bash
-python collect_market_data.py --only your_new_id --refresh
-```
+## License
 
-## Legacy S&P 500 Workflow
+[MIT](LICENSE)
 
-The older workflow expects a manually downloaded Shiller file:
+## Disclaimer
 
-```bash
-python build_dataset.py
-python retirement_optimizer.py
-```
-
-Those scripts expect `shiller_raw.csv` and generate `sp500_monthly.csv` / `window_results.csv`. Generated CSVs are ignored by git.
-
-## Notes
-
-- Historical backtests are educational and are not financial advice.
-- Yahoo and FRED availability can change. Check `data/catalog.json` after each run for failed or shortened series.
-- For retirement modeling, prefer total-return or adjusted-close series over price-only indexes when possible.
+This calculator is an educational tool. It replays historical data and does not predict future market performance. It is not financial advice. Consult a qualified financial advisor for personal retirement planning.
