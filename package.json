@@ -19,7 +19,7 @@
     "check:version": "node -e \"import('./scripts/version-utils.mjs').then(({parseVersion})=>parseVersion(require('node:fs').readFileSync('VERSION','utf8')))\"",
     "check:html": "html-validate --config .htmlvalidate.json index.html",
     "check:js": "node tests/check-scripts.mjs",
-    "lint": "eslint scripts tests src",
+    "lint": "eslint functions scripts tests src",
     "test:unit": "vitest run",
     "test:a11y": "npm run build && sh -c 'npm run preview > /tmp/retirement-vite-preview.log 2>&1 & PREVIEW_PID=$!; wait-on http://127.0.0.1:4173; node tests/a11y.mjs; STATUS=$?; kill $PREVIEW_PID 2>/dev/null || true; exit $STATUS'",
     "test": "npm-run-all check:version check:json check:js check:python lint test:unit test:a11y"

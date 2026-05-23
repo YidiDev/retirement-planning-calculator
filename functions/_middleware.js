@@ -1,36 +1,7 @@
+import { buildAnalysisInput, parseCalculatorSearch, renderIndexMarkdown } from '../src/calculator-state.js';
+import { runAnalysis } from '../src/worker.js';
+
 const MARKDOWN = {
-  '/': () => `# Retirement Withdrawal Calculator
-
-A flexible retirement withdrawal calculator stress-tested against 150+ years of real U.S. market history.
-
-## What it does
-
-Set your savings, timeline, portfolio mix, and withdrawal rules. The calculator replays your plan through every starting month since 1871 and reports how it would have held up.
-
-## How to use
-
-1. **Your Savings** — Enter your nest egg and choose a retirement length (5–60 years)
-2. **Your Goal** — Preserve capital, spend it down, or set a custom retention target
-3. **Investment Mix** — All stocks, balanced (60/40), conservative, or build a custom portfolio
-4. **Withdrawal Rules** — Set minimum and maximum monthly income limits
-5. **Run Analysis** — View results: median income, success rate, charts, and full historical data
-
-## Data
-
-- U.S. Equity: S&P 500 total return (monthly, 1871–2023)
-- Treasury Bonds: 10-year constant maturity (monthly, 1871–2023)
-- Gold: free-market era (monthly, 1968–2023)
-- Inflation: CPI-U for real-return calculations
-
-## Links
-
-- [Privacy Policy](/privacy)
-- [Terms of Use](/terms)
-- [Source Code](https://github.com/YidiDev/retirement-planning-calculator)
-
-MIT License. Not financial advice.
-`,
-
   '/privacy': () => `# Privacy Policy
 
 Last updated: January 2025
@@ -110,6 +81,18 @@ export async function onRequest(context) {
   const accept = (context.request.headers.get('Accept') || '').toLowerCase();
   const url = new URL(context.request.url);
   const path = url.pathname.replace(/\/+$/, '') || '/';
+
+  if (accept.includes('text/markdown') && path === '/') {
+    const state = parseCalculatorSearch(url.search);
+    const analysis = state._autoRun ? runAnalysis(buildAnalysisInput(state)) : null;
+
+    return new Response(renderIndexMarkdown(state, analysis), {
+      headers: {
+        'Content-Type': 'text/markdown; charset=utf-8',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+  }
 
   if (accept.includes('text/markdown') && MARKDOWN[path]) {
     return new Response(MARKDOWN[path](), {

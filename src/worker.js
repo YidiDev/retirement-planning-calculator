@@ -201,9 +201,7 @@ const DATA = {"startYear":1871,"startMonth":2,"sp":[0.01839339,0.02925926,0.0328
   }
 
   let STATE = null;
-  onmessage = function(ev2){
-    const m = ev2.data;
-    if(m.type === 'run'){
+  export function runAnalysis(m){
       const W = Math.round(m.years * 12), target = m.retain / 100;
       const L = Math.max(1, Math.round(m.lookback));
       const F = Math.max(1, Math.round(m.recalc));
@@ -244,12 +242,17 @@ const DATA = {"startYear":1871,"startMonth":2,"sp":[0.01839339,0.02925926,0.0328
       }
       STATE = {aPct:best.aPct, bPct:best.bPct, x:best.x, D:best.D, C:best.C,
                W:W, E:m.nestEgg, L:L, F:F};
-      postMessage({type:'result', mode:{floor:m.floorMode, cap:m.capMode},
-                   best:best, rows:rows, frontier:frontier, W:W, target:target,
-                   L:L, F:F});
-    } else if(m.type === 'spotlight'){
-      postMessage({type:'spotlight',
-        traj: spotlight(STATE.aPct, STATE.bPct, STATE.x, STATE.D, STATE.C,
-                        STATE.W, STATE.E, m.s, STATE.L, STATE.F)});
-    }
+      return {type:'result', mode:{floor:m.floorMode, cap:m.capMode},
+              best:best, rows:rows, frontier:frontier, W:W, target:target,
+              L:L, F:F};
+  }
+  export function runSpotlight(s){
+    return {type:'spotlight',
+      traj: spotlight(STATE.aPct, STATE.bPct, STATE.x, STATE.D, STATE.C,
+                      STATE.W, STATE.E, s, STATE.L, STATE.F)};
+  }
+  globalThis.onmessage = function(ev2){
+    const m = ev2.data;
+    const response = m.type === 'run' ? runAnalysis(m) : runSpotlight(m.s);
+    globalThis.postMessage(response);
   };
