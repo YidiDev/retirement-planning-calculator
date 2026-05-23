@@ -181,6 +181,7 @@ Example:
 
 - [Privacy Policy](/privacy)
 - [Terms of Use](/terms)
+- [Support the Project](https://github.com/sponsors/YidiDev)
 - [Source Code](https://github.com/YidiDev/retirement-planning-calculator)
 
 MIT License. Not financial advice.

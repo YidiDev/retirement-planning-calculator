@@ -2,7 +2,7 @@ export function privacyPage() {
   const SITE = 'Retirement Withdrawal Calculator';
   const REPO = 'https://github.com/YidiDev/retirement-planning-calculator';
   return `
-<div class="legal-page">
+<main class="legal-page" aria-label="Privacy policy">
   <a href="/" class="back-link">&larr; Back to calculator</a>
   <h1>Privacy Policy</h1>
   <p class="updated">Last updated: January 2025</p>
@@ -80,5 +80,5 @@ export function privacyPage() {
     issue on the
     <a href="${REPO}/issues" target="_blank"
       rel="noopener">GitHub repository</a>.</p>
-</div>`;
+</main>`;
 }
