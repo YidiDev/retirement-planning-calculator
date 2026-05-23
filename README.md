@@ -86,6 +86,10 @@ The project uses a `VERSION` file with semver (`MAJOR.MINOR.PATCH`). PRs into `s
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for setup instructions and development workflow.
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for supported versions and vulnerability reporting instructions.
+
 ## License
 
 [MIT](LICENSE)
