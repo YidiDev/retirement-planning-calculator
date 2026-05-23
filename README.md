@@ -1,8 +1,12 @@
 # Retirement Withdrawal Calculator
 
+[![CI](https://github.com/YidiDev/retirement-planning-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/YidiDev/retirement-planning-calculator/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-retirement.yidi.sh-brightgreen.svg)](https://retirement.yidi.sh/)
+
 A flexible, market-aware retirement withdrawal calculator stress-tested against 150+ years of real U.S. market history. Built with Alpine.js, Chart.js, Tailwind CSS v4, and a Web Worker-based simulation engine.
 
-[Try it live](https://yididev.github.io/retirement-planning-calculator/) | [Support the project](https://github.com/sponsors/YidiDev) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
+[Try it now: retirement.yidi.sh](https://retirement.yidi.sh) | [Support the project](https://github.com/sponsors/YidiDev) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
 
 ## What It Does
 
@@ -39,6 +43,12 @@ Open `http://localhost:8080` in your browser.
 | `npm run build:prod` | Refresh market data + production build |
 | `npm test` | Run all checks, unit tests, and accessibility tests |
 | `npm run data:refresh` | Download latest market data from Yahoo/FRED |
+
+## Requirements
+
+- Node.js 22+
+- Python 3.12+
+- Chromium for Playwright accessibility tests (`npx playwright install chromium`)
 
 ## Environment Variables
 

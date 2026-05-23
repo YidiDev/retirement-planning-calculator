@@ -1,4 +1,5 @@
 # Retirement Withdrawal Calculator
+# https://retirement.yidi.sh/
 # https://github.com/YidiDev/retirement-planning-calculator
 
 > This is an open-source retirement withdrawal calculator that stress-tests
@@ -65,9 +66,9 @@ blend of these three return streams.
 
 ## Key URLs
 
-- Calculator: /
-- Privacy Policy: /privacy
-- Terms of Use: /terms
+- Calculator: https://retirement.yidi.sh/
+- Privacy Policy: https://retirement.yidi.sh/privacy
+- Terms of Use: https://retirement.yidi.sh/terms
 - Source code: https://github.com/YidiDev/retirement-planning-calculator
 - Issues: https://github.com/YidiDev/retirement-planning-calculator/issues
 
