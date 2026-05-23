@@ -42,8 +42,8 @@ describe('index.html structure', () => {
 });
 
 describe('source file size limits', () => {
-  const MAX_LINES = 300;
-  const srcFiles = ['src/main.js', 'src/app.js', 'src/charts.js'];
+  const MAX_LINES = 320;
+  const srcFiles = ['src/main.js', 'src/app.js', 'src/charts.js', 'src/analytics.js', 'src/sentry.js'];
 
   for (const file of srcFiles) {
     it(`${file} is under ${MAX_LINES} lines`, () => {

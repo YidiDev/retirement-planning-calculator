@@ -15,12 +15,46 @@
 <body>
 <main class="container" x-data="calculator" x-cloak>
 
-  <header style="text-align:center;margin-bottom:2.5rem;padding-top:1rem">
+  <header style="text-align:center;margin-bottom:1.5rem;padding-top:1rem">
     <h1 style="margin-bottom:0.4rem">Retirement Withdrawal Planner</h1>
     <p style="font-size:0.95rem;max-width:520px;margin:0 auto">
       Find sustainable withdrawal rates backed by 150+ years of real market data.
     </p>
+    <button type="button" @click="showHelp = !showHelp"
+      style="margin-top:0.75rem;background:none;border:none;font-family:inherit;
+        font-size:0.85rem;color:var(--sienna);cursor:pointer;
+        text-decoration:underline;text-underline-offset:3px">
+      <span x-text="showHelp ? 'Hide details' : 'How does this work?'"></span>
+    </button>
   </header>
+
+  <div x-show="showHelp" x-transition x-cloak class="card" style="margin-bottom:1.5rem">
+    <h3 style="margin-bottom:0.5rem">How the calculator works</h3>
+    <p style="margin-bottom:0.5rem">
+      Each month you withdraw a <strong style="color:var(--ink)">percentage of your current
+      savings</strong> that flexes with the market &mdash; more after strong months, less after
+      weak ones &mdash; but always between a <strong style="color:var(--ink)">floor</strong>
+      and a <strong style="color:var(--ink)">cap</strong> you set.
+    </p>
+    <p style="margin-bottom:0.5rem">
+      The calculator replays your plan through <strong style="color:var(--ink)">every starting
+      month since 1871</strong> and reports how it held up. Whatever it shows is a ceiling &mdash;
+      you can always spend less.
+    </p>
+    <p style="margin-bottom:0.5rem">
+      The simulation uses three historical return streams:
+      <strong style="color:var(--ink)">U.S. stocks</strong> (S&amp;P 500 since 1871),
+      <strong style="color:var(--ink)">Treasury bonds</strong> (10-year, since 1871),
+      and <strong style="color:var(--ink)">gold</strong> (free-market era, 1968+).
+      Taxes, fees, and fund expenses are not modeled.
+    </p>
+    <p style="font-size:0.82rem;color:var(--ink-light);margin-top:0.75rem;
+      padding-top:0.75rem;border-top:1px dashed var(--border-light)">
+      Numbers are ceilings &mdash; spending less than the maximum is always safer than
+      what the simulation shows. Results reflect past performance and do not guarantee
+      future returns.
+    </p>
+  </div>
 
   <!-- Step 1: Savings -->
   <div class="card">
@@ -269,7 +303,7 @@
     </div>
 
     <div class="card">
-      <details>
+      <details @toggle="$event.target.open && _trackTableExpand()">
         <summary style="cursor:pointer;color:var(--sienna);font-weight:500;font-size:0.9rem">
           All <span x-text="periodCount"></span> historical periods
         </summary>
@@ -278,7 +312,7 @@
             <thead><tr><th>Start</th><th>1st Yr $/mo</th><th>Avg $/mo</th><th>End %</th><th>Result</th></tr></thead>
             <tbody>
               <template x-for="r in rows" :key="r.s">
-                <tr @click="selectSpot(r.s);resultTab='spotlight'" style="cursor:pointer">
+                <tr @click="selectSpot(r.s);resultTab='spotlight';_trackRowClick(r.start)" style="cursor:pointer">
                   <td x-text="r.start"></td>
                   <td x-text="rowIncome(r)"></td>
                   <td x-text="rowAvg(r)"></td>
