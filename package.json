@@ -17,7 +17,7 @@
     "check:python": ".venv/bin/python -m py_compile collect_market_data.py build_dataset.py retirement_optimizer.py",
     "check:json": "node tests/check-data-sources.mjs",
     "check:version": "node -e \"import('./scripts/version-utils.mjs').then(({parseVersion})=>parseVersion(require('node:fs').readFileSync('VERSION','utf8')))\"",
-    "check:html": "html-validate index.html",
+    "check:html": "html-validate --config .htmlvalidate.json index.html",
     "check:js": "node tests/check-scripts.mjs",
     "lint": "eslint scripts tests src",
     "test:unit": "vitest run",

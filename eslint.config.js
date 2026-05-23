@@ -4,7 +4,7 @@ export default [
   js.configs.recommended,
   {
     files: ['scripts/**/*.mjs', 'tests/**/*.mjs', 'tests/**/*.js', 'src/**/*.js'],
-    ignores: ['src/worker.js', 'src/legacy-calculator.js'],
+    ignores: ['src/worker.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -15,8 +15,6 @@ export default [
         Blob: 'readonly',
         Worker: 'readonly',
         setTimeout: 'readonly',
-        clearTimeout: 'readonly',
-        window: 'readonly',
         document: 'readonly',
         __APP_VERSION__: 'readonly',
       },
@@ -36,8 +34,5 @@ export default [
         console: 'readonly',
       },
     },
-  },
-  {
-    ignores: ['src/legacy-calculator.js'],
   },
 ];
