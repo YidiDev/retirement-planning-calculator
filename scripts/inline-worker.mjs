@@ -10,7 +10,7 @@ const workerSrc = readFileSync(resolve(root, 'src/worker.js'), 'utf8');
 const htmlPath = resolve(root, 'index.html');
 let html = readFileSync(htmlPath, 'utf8');
 
-const placeholder = /<script id="worker-src" type="javascript\/worker">[\s\S]*?<\/script>/;
+const placeholder = /<script id="worker-src" type="javascript\/worker">[\s\S]*?<\/script>/i;
 const replacement = `<script id="worker-src" type="javascript/worker">\n${workerSrc}\n  </script>`;
 
 if (!placeholder.test(html)) {

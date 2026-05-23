@@ -2,7 +2,7 @@ export function termsPage() {
   const SITE = 'Retirement Withdrawal Calculator';
   const REPO = 'https://github.com/YidiDev/retirement-planning-calculator';
   return `
-<div class="legal-page">
+<main class="legal-page" aria-label="Terms of use">
   <a href="/" class="back-link">&larr; Back to calculator</a>
   <h1>Terms of Use</h1>
   <p class="updated">Last updated: January 2025</p>
@@ -56,5 +56,5 @@ export function termsPage() {
     the "Last updated" date and committed to the
     <a href="${REPO}" target="_blank"
       rel="noopener">public repository</a>.</p>
-</div>`;
+</main>`;
 }
