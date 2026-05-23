@@ -35,6 +35,44 @@ function assetCategories() {
   return cats;
 }
 
+/* ── URL state sync ── */
+const PARAM_KEYS = ['savings', 'years', 'goalPreset', 'retainPct', 'strategyPreset',
+  'floorMode', 'minFloorPct', 'minIncome', 'capMode', 'maxCapPct', 'maxIncome',
+  'lookback', 'recalc'];
+const NUM_KEYS = new Set(['savings', 'years', 'retainPct', 'minFloorPct', 'minIncome',
+  'maxCapPct', 'maxIncome', 'lookback', 'recalc']);
+
+function readParams() {
+  const p = new URLSearchParams(window.location.search);
+  const out = {};
+  for (const k of PARAM_KEYS) {
+    if (!p.has(k)) continue;
+    out[k] = NUM_KEYS.has(k) ? parseFloat(p.get(k)) : p.get(k);
+  }
+  if (p.has('portfolio')) {
+    try { out.portfolio = JSON.parse(p.get('portfolio')); } catch (e) { void e; }
+  }
+  return out;
+}
+
+const DEFAULTS = { savings: 1000000, years: 30, goalPreset: 'preserve', retainPct: 100,
+  strategyPreset: 'stocks', floorMode: 'usd', minFloorPct: 4, minIncome: 3000,
+  capMode: 'usd', maxCapPct: 9, maxIncome: 12000, lookback: 1, recalc: 1 };
+const DEFAULT_PORTFOLIO = '[{"id":"sp500_price","weight":100}]';
+
+function writeParams(state) {
+  const p = new URLSearchParams();
+  for (const k of PARAM_KEYS) {
+    const v = state[k];
+    if (v !== undefined && v !== null && v !== DEFAULTS[k]) p.set(k, String(v));
+  }
+  const pj = JSON.stringify(state.portfolio);
+  if (pj !== DEFAULT_PORTFOLIO) p.set('portfolio', pj);
+  const qs = p.toString();
+  const url = window.location.pathname + (qs ? '?' + qs : '');
+  window.history.replaceState(null, '', url);
+}
+
 function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
 function moneyK(v) {
   if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
@@ -236,6 +274,25 @@ export function calculator() {
       this.$nextTick(() => { renderSpotlight('chartSpotlight', m.traj); });
     },
 
-    init() { initWorker(this); },
+    _syncToUrl() {
+      writeParams(this);
+    },
+
+    init() {
+      initWorker(this);
+      // Read URL params on load
+      const params = readParams();
+      for (const [k, v] of Object.entries(params)) {
+        if (k === 'portfolio') { this.portfolio = v; }
+        else if (k in this) { this[k] = v; }
+      }
+      // Set showCustom if strategy is custom
+      if (this.strategyPreset === 'custom') this.showCustom = true;
+      // Watch all config keys and sync to URL
+      for (const k of PARAM_KEYS) {
+        this.$watch(k, () => this._syncToUrl());
+      }
+      this.$watch('portfolio', () => this._syncToUrl());
+    },
   };
 }
