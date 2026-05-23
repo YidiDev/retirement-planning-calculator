@@ -193,6 +193,26 @@ select.spot-select { flex: 1; min-width: 180px; padding: 6px 10px; font-size: 0.
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 @media (max-width: 540px) { .grid-2 { grid-template-columns: 1fr; } }
 
+/* ── Share bar ── */
+.share-bar {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper-mid); border-radius: var(--radius);
+  padding: 12px 16px; margin-bottom: 1.5rem;
+  border: 1px dashed var(--border);
+}
+.share-btn {
+  padding: 8px 16px; border: 1px solid var(--border);
+  border-radius: 20px; background: var(--paper-light);
+  font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  color: var(--sienna); cursor: pointer; white-space: nowrap;
+  transition: all .2s;
+}
+.share-btn:hover { background: var(--sienna); color: #fff; border-color: var(--sienna); }
+.share-btn-copied {
+  background: var(--success) !important; color: #fff !important;
+  border-color: var(--success) !important;
+}
+
 footer { text-align: center; padding: 2rem 0 1rem; font-size: 0.78rem; color: var(--ink-light); }
 footer a { color: var(--sienna); text-decoration: underline; text-underline-offset: 3px; }
 footer a:hover { color: var(--sienna-dark); }

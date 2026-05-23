@@ -19,6 +19,7 @@ export default [
         document: 'readonly',
         window: 'readonly',
         URLSearchParams: 'readonly',
+        navigator: 'readonly',
         __APP_VERSION__: 'readonly',
         __GA_MEASUREMENT_ID__: 'readonly',
         __SENTRY_DSN__: 'readonly',
