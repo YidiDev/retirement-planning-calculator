@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @source "../index.html";
 @source "./app.js";
+@source "./pages/*.js";
 
 :root {
   --paper: #f5f0e8; --paper-light: #faf6ef; --paper-mid: #efe8db;
@@ -193,6 +194,42 @@ select.spot-select { flex: 1; min-width: 180px; padding: 6px 10px; font-size: 0.
 @media (max-width: 540px) { .grid-2 { grid-template-columns: 1fr; } }
 
 footer { text-align: center; padding: 2rem 0 1rem; font-size: 0.78rem; color: var(--ink-light); }
+footer a { color: var(--sienna); text-decoration: underline; text-underline-offset: 3px; }
+footer a:hover { color: var(--sienna-dark); }
+
+/* ── Legal pages ── */
+.legal-page { padding: 1rem 0 3rem; }
+.legal-page h1 {
+  font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+  margin-bottom: 0.25rem;
+}
+.legal-page .updated {
+  font-size: 0.82rem; color: var(--ink-light);
+  margin-bottom: 2rem;
+}
+.legal-page .back-link {
+  display: inline-block; margin-bottom: 1.5rem;
+  font-size: 0.85rem; color: var(--sienna);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.legal-page .back-link:hover { color: var(--sienna-dark); }
+.legal-page h2 {
+  font-size: 1.15rem; margin: 1.75rem 0 0.5rem;
+}
+.legal-page p {
+  margin-bottom: 0.6rem; line-height: 1.7;
+  font-size: 0.9rem;
+}
+.legal-page ul {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  font-size: 0.9rem; line-height: 1.7;
+}
+.legal-page li { margin-bottom: 0.25rem; }
+.legal-page a {
+  color: var(--sienna); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.legal-page a:hover { color: var(--sienna-dark); }
 
 .fade-in { animation: fadeIn .4s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
