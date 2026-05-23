@@ -1,0 +1,394 @@
+{
+  "symbols": [
+    {
+      "id": "sp500_price",
+      "name": "S&P 500 Index",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "^GSPC",
+      "asset_class": "us_large_cap_equity",
+      "return_type": "price",
+      "notes": "Headline S&P 500 price index. Does not include dividends."
+    },
+    {
+      "id": "sp500_total_return",
+      "name": "S&P 500 Total Return Index",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "^SP500TR",
+      "asset_class": "us_large_cap_equity",
+      "return_type": "total_return_index",
+      "notes": "Yahoo availability varies by region. Use as a check against reconstructed total return data."
+    },
+    {
+      "id": "sp500_equal_weight",
+      "name": "S&P 500 Equal Weight ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "RSP",
+      "asset_class": "us_large_cap_equity",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for equal-weight S&P 500 exposure. Starts in 2003."
+    },
+    {
+      "id": "sp500_growth",
+      "name": "S&P 500 Growth ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "IVW",
+      "asset_class": "us_large_cap_growth",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for S&P 500 Growth exposure."
+    },
+    {
+      "id": "sp500_value",
+      "name": "S&P 500 Value ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "IVE",
+      "asset_class": "us_large_cap_value",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for S&P 500 Value exposure."
+    },
+    {
+      "id": "sp500_low_volatility",
+      "name": "S&P 500 Low Volatility ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "SPLV",
+      "asset_class": "us_large_cap_low_volatility",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy; shorter history."
+    },
+    {
+      "id": "sp500_high_beta",
+      "name": "S&P 500 High Beta ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "SPHB",
+      "asset_class": "us_large_cap_high_beta",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy; shorter history."
+    },
+    {
+      "id": "sp500_dividend_aristocrats",
+      "name": "S&P 500 Dividend Aristocrats ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "NOBL",
+      "asset_class": "us_large_cap_dividend",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for dividend aristocrats; shorter history."
+    },
+    {
+      "id": "sp500_quality",
+      "name": "S&P 500 Quality ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "SPHQ",
+      "asset_class": "us_large_cap_quality",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for S&P 500 quality factor exposure."
+    },
+    {
+      "id": "sp500_momentum",
+      "name": "S&P 500 Momentum ETF Proxy",
+      "group": "s_and_p_500",
+      "source": "yahoo",
+      "ticker": "SPMO",
+      "asset_class": "us_large_cap_momentum",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for S&P 500 momentum factor exposure."
+    },
+    {
+      "id": "sp500_sector_technology",
+      "name": "S&P 500 Technology Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLK",
+      "asset_class": "us_large_cap_sector_technology",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_financials",
+      "name": "S&P 500 Financials Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLF",
+      "asset_class": "us_large_cap_sector_financials",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_health_care",
+      "name": "S&P 500 Health Care Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLV",
+      "asset_class": "us_large_cap_sector_health_care",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_consumer_discretionary",
+      "name": "S&P 500 Consumer Discretionary Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLY",
+      "asset_class": "us_large_cap_sector_consumer_discretionary",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_consumer_staples",
+      "name": "S&P 500 Consumer Staples Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLP",
+      "asset_class": "us_large_cap_sector_consumer_staples",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_industrials",
+      "name": "S&P 500 Industrials Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLI",
+      "asset_class": "us_large_cap_sector_industrials",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_energy",
+      "name": "S&P 500 Energy Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLE",
+      "asset_class": "us_large_cap_sector_energy",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_materials",
+      "name": "S&P 500 Materials Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLB",
+      "asset_class": "us_large_cap_sector_materials",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_utilities",
+      "name": "S&P 500 Utilities Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLU",
+      "asset_class": "us_large_cap_sector_utilities",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy."
+    },
+    {
+      "id": "sp500_sector_real_estate",
+      "name": "S&P 500 Real Estate Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLRE",
+      "asset_class": "us_large_cap_sector_real_estate",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy; shorter history than older sectors."
+    },
+    {
+      "id": "sp500_sector_communication_services",
+      "name": "S&P 500 Communication Services Sector ETF Proxy",
+      "group": "s_and_p_500_sectors",
+      "source": "yahoo",
+      "ticker": "XLC",
+      "asset_class": "us_large_cap_sector_communication_services",
+      "return_type": "adjusted_close",
+      "notes": "Sector SPDR ETF proxy; shorter history."
+    },
+    {
+      "id": "total_us_market_vti",
+      "name": "Vanguard Total Stock Market ETF",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "VTI",
+      "asset_class": "us_total_equity_market",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for CRSP US Total Market."
+    },
+    {
+      "id": "total_us_market_itot",
+      "name": "iShares Core S&P Total U.S. Stock Market ETF",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "ITOT",
+      "asset_class": "us_total_equity_market",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for S&P Total Market Index."
+    },
+    {
+      "id": "russell_3000_iwv",
+      "name": "iShares Russell 3000 ETF",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "IWV",
+      "asset_class": "us_total_equity_market",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for Russell 3000."
+    },
+    {
+      "id": "russell_1000_iwb",
+      "name": "iShares Russell 1000 ETF",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "IWB",
+      "asset_class": "us_large_mid_cap_equity",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for Russell 1000."
+    },
+    {
+      "id": "schwab_broad_market_schb",
+      "name": "Schwab U.S. Broad Market ETF",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "SCHB",
+      "asset_class": "us_total_equity_market",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for Dow Jones U.S. Broad Stock Market Index."
+    },
+    {
+      "id": "wilshire_5000_yahoo",
+      "name": "Wilshire 5000 Total Market Full Cap Index",
+      "group": "full_market_indexes",
+      "source": "yahoo",
+      "ticker": "^W5000",
+      "asset_class": "us_total_equity_market",
+      "return_type": "price",
+      "notes": "Yahoo index level. Daily series aggregated to month-end."
+    },
+    {
+      "id": "us_reit_vnq",
+      "name": "Vanguard Real Estate ETF",
+      "group": "reits",
+      "source": "yahoo",
+      "ticker": "VNQ",
+      "asset_class": "us_reit",
+      "return_type": "adjusted_close",
+      "notes": "Broad U.S. REIT ETF proxy."
+    },
+    {
+      "id": "us_reit_iyr",
+      "name": "iShares U.S. Real Estate ETF",
+      "group": "reits",
+      "source": "yahoo",
+      "ticker": "IYR",
+      "asset_class": "us_reit",
+      "return_type": "adjusted_close",
+      "notes": "Older U.S. real-estate ETF proxy."
+    },
+    {
+      "id": "global_reit_rwx",
+      "name": "SPDR Dow Jones International Real Estate ETF",
+      "group": "reits",
+      "source": "yahoo",
+      "ticker": "RWX",
+      "asset_class": "global_ex_us_reit",
+      "return_type": "adjusted_close",
+      "notes": "International real-estate ETF proxy."
+    },
+    {
+      "id": "global_reit_vnqi",
+      "name": "Vanguard Global ex-U.S. Real Estate ETF",
+      "group": "reits",
+      "source": "yahoo",
+      "ticker": "VNQI",
+      "asset_class": "global_ex_us_reit",
+      "return_type": "adjusted_close",
+      "notes": "Global ex-U.S. real-estate ETF proxy."
+    },
+    {
+      "id": "residential_reit_rez",
+      "name": "iShares Residential and Multisector Real Estate ETF",
+      "group": "reits",
+      "source": "yahoo",
+      "ticker": "REZ",
+      "asset_class": "us_residential_reit",
+      "return_type": "adjusted_close",
+      "notes": "U.S. residential and specialized real-estate ETF proxy."
+    },
+    {
+      "id": "total_bond_market_bnd",
+      "name": "Vanguard Total Bond Market ETF",
+      "group": "fixed_income",
+      "source": "yahoo",
+      "ticker": "BND",
+      "asset_class": "us_total_bond_market",
+      "return_type": "adjusted_close",
+      "notes": "Broad U.S. aggregate bond ETF proxy."
+    },
+    {
+      "id": "ten_year_treasury_yield",
+      "name": "10-Year Treasury Constant Maturity Rate",
+      "group": "fixed_income",
+      "source": "fred",
+      "series_id": "DGS10",
+      "asset_class": "treasury_yield",
+      "return_type": "yield",
+      "notes": "Yield level, not a total return series. Useful for reconstructed bond returns."
+    },
+    {
+      "id": "gold_gld",
+      "name": "SPDR Gold Shares ETF",
+      "group": "commodities",
+      "source": "yahoo",
+      "ticker": "GLD",
+      "asset_class": "gold",
+      "return_type": "adjusted_close",
+      "notes": "ETF proxy for gold exposure."
+    },
+    {
+      "id": "gold_futures_yahoo",
+      "name": "Gold Futures Continuous Contract",
+      "group": "commodities",
+      "source": "yahoo",
+      "ticker": "GC=F",
+      "asset_class": "gold",
+      "return_type": "price",
+      "notes": "Yahoo continuous futures price. Daily series aggregated to month-end."
+    },
+    {
+      "id": "developed_ex_us_efa",
+      "name": "iShares MSCI EAFE ETF",
+      "group": "international_equity",
+      "source": "yahoo",
+      "ticker": "EFA",
+      "asset_class": "developed_ex_us_equity",
+      "return_type": "adjusted_close",
+      "notes": "Developed international equity ETF proxy."
+    },
+    {
+      "id": "emerging_markets_eem",
+      "name": "iShares MSCI Emerging Markets ETF",
+      "group": "international_equity",
+      "source": "yahoo",
+      "ticker": "EEM",
+      "asset_class": "emerging_market_equity",
+      "return_type": "adjusted_close",
+      "notes": "Emerging markets equity ETF proxy."
+    },
+    {
+      "id": "cpi_us",
+      "name": "Consumer Price Index for All Urban Consumers",
+      "group": "inflation",
+      "source": "fred",
+      "series_id": "CPIAUCSL",
+      "asset_class": "inflation",
+      "return_type": "index_level",
+      "notes": "Monthly CPI-U index for real-return and spending-power calculations."
+    }
+  ]
+}

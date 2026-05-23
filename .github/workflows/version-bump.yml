@@ -1,0 +1,49 @@
+name: Version Bump
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main, staging]
+
+concurrency:
+  group: version-bump-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  bump:
+    if: github.event.pull_request.draft == false && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.event.pull_request.base.ref }}:${{ github.event.pull_request.base.ref }}
+
+      - name: Ensure VERSION is higher than base
+        run: node scripts/ensure-version-bump.mjs --base=${{ github.event.pull_request.base.ref }} --write
+
+      - name: Commit patch bump when needed
+        run: |
+          if git diff --quiet VERSION; then
+            echo "VERSION already higher than base."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add VERSION
+          git commit -m "chore: bump version"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
