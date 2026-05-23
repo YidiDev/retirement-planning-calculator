@@ -68,12 +68,12 @@
     </div>
 
     <p class="hint" x-text="allocNote" style="margin-bottom:0.75rem"></p>
-    <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--border-light);margin-bottom:0.75rem" x-show="sleeves.total>0">
+    <div style="display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--border-light);margin-bottom:0.75rem">
       <div :style="'width:'+sleeveBarStyles.sp+';background:#b85c38;transition:width .3s'"></div>
       <div :style="'width:'+sleeveBarStyles.bd+';background:#3d7a9e;transition:width .3s'"></div>
       <div :style="'width:'+sleeveBarStyles.gd+';background:#c9a84c;transition:width .3s'"></div>
     </div>
-    <div style="display:flex;gap:16px;font-size:0.78rem;color:var(--ink-light)" x-show="sleeves.total>0">
+    <div style="display:flex;gap:16px;font-size:0.78rem;color:var(--ink-light);margin-bottom:0.5rem">
       <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#b85c38;margin-right:4px"></span>Stocks</span>
       <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#3d7a9e;margin-right:4px"></span>Bonds</span>
       <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9a84c;margin-right:4px"></span>Gold</span>
