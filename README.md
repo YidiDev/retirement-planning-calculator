@@ -2,11 +2,11 @@
 
 [![CI](https://github.com/YidiDev/retirement-planning-calculator/actions/workflows/ci.yml/badge.svg)](https://github.com/YidiDev/retirement-planning-calculator/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Live Demo](https://img.shields.io/badge/demo-retirement.yidi.sh-brightgreen.svg)](https://retirement.yidi.sh/)
+[![Live Demo](https://img.shields.io/badge/demo-retirement.yidi.sh-brightgreen.svg)](https://retirement.yidi.sh/?ref=github-readme&utm_source=github&utm_medium=readme&utm_campaign=demo_badge)
 
 A flexible, market-aware retirement withdrawal calculator stress-tested against 150+ years of real U.S. market history. Built with Alpine.js, Chart.js, Tailwind CSS v4, and a Web Worker-based simulation engine.
 
-[Try it now: retirement.yidi.sh](https://retirement.yidi.sh) | [Support the project](https://github.com/sponsors/YidiDev) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
+[Try it now: retirement.yidi.sh](https://retirement.yidi.sh/?ref=github-readme&utm_source=github&utm_medium=readme&utm_campaign=try_it_now) | [Support the project](https://github.com/sponsors/YidiDev?ref=github-readme&utm_source=github&utm_medium=readme&utm_campaign=sponsor_link) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues?ref=github-readme&utm_source=github&utm_medium=readme&utm_campaign=issue_link)
 
 ## What It Does
 
