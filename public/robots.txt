@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow:
 
-Sitemap: https://yididev.github.io/retirement-planning-calculator/sitemap.xml
+Sitemap: https://retirement.yidi.sh/sitemap.xml
