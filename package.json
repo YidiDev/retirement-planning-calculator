@@ -28,6 +28,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sentry/browser": "^10.53.1",
     "alpinejs": "^3.15.12",
     "chart.js": "^4.5.1"
   },

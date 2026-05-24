@@ -8,6 +8,8 @@ export default defineConfig({
   plugins: [tailwindcss()],
   define: {
     __APP_VERSION__: JSON.stringify(appVersion),
+    __GA_MEASUREMENT_ID__: JSON.stringify(process.env.GA_MEASUREMENT_ID || ''),
+    __SENTRY_DSN__: JSON.stringify(process.env.SENTRY_DSN || ''),
   },
   build: {
     outDir: 'dist',

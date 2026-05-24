@@ -1,30 +1,26 @@
 import { renderIncome, renderPreserve, renderSpotlight } from './charts.js';
+import * as ga from './analytics.js';
+import { addBreadcrumb, captureError } from './sentry.js';
 
+const L = 'U.S. Large Cap', F = 'Factor Strategies', B = 'Broad U.S. Market', R = 'Real Estate', I = 'International';
 const ASSETS = [
-  // U.S. Large Cap
-  { id: 'sp500_price', name: 'S&P 500 Index', ticker: '^GSPC', cat: 'U.S. Large Cap', sleeve: 'sp', years: '1928+', desc: 'Headline large-cap index' },
-  { id: 'sp500_total_return', name: 'S&P 500 Total Return', ticker: '^SP500TR', cat: 'U.S. Large Cap', sleeve: 'sp', years: '1988+', desc: 'Dividends reinvested' },
-  { id: 'sp500_equal_weight', name: 'S&P 500 Equal Weight', ticker: 'RSP', cat: 'U.S. Large Cap', sleeve: 'sp', years: '2003+', desc: 'Equal-weight proxy' },
-  { id: 'sp500_growth', name: 'S&P 500 Growth', ticker: 'IVW', cat: 'U.S. Large Cap', sleeve: 'sp', years: '2000+', desc: 'Growth tilt' },
-  { id: 'sp500_value', name: 'S&P 500 Value', ticker: 'IVE', cat: 'U.S. Large Cap', sleeve: 'sp', years: '2000+', desc: 'Value tilt' },
-  // Factors
-  { id: 'sp500_quality', name: 'Quality Factor', ticker: 'SPHQ', cat: 'Factor Strategies', sleeve: 'sp', years: '2005+', desc: 'Quality screen' },
-  { id: 'sp500_momentum', name: 'Momentum Factor', ticker: 'SPMO', cat: 'Factor Strategies', sleeve: 'sp', years: '2015+', desc: 'Momentum screen' },
-  { id: 'sp500_dividend_aristocrats', name: 'Dividend Aristocrats', ticker: 'NOBL', cat: 'Factor Strategies', sleeve: 'sp', years: '2013+', desc: '25+ yr dividend growers' },
-  // Broad Market
-  { id: 'total_us_market_vti', name: 'Total U.S. Market', ticker: 'VTI', cat: 'Broad U.S. Market', sleeve: 'sp', years: '2001+', desc: 'Full market cap-weighted' },
-  { id: 'russell_3000_iwv', name: 'Russell 3000', ticker: 'IWV', cat: 'Broad U.S. Market', sleeve: 'sp', years: '2000+', desc: '3,000 largest U.S. stocks' },
-  { id: 'wilshire_5000_yahoo', name: 'Wilshire 5000', ticker: '^W5000', cat: 'Broad U.S. Market', sleeve: 'sp', years: '1988+', desc: 'Broadest U.S. index' },
-  // Real Estate
-  { id: 'us_reit_vnq', name: 'U.S. REITs', ticker: 'VNQ', cat: 'Real Estate', sleeve: 'sp', years: '2004+', desc: 'Broad U.S. REIT fund' },
-  { id: 'us_reit_iyr', name: 'U.S. Real Estate', ticker: 'IYR', cat: 'Real Estate', sleeve: 'sp', years: '2000+', desc: 'Real estate sector' },
-  // International
-  { id: 'developed_ex_us_efa', name: 'Developed ex-U.S.', ticker: 'EFA', cat: 'International', sleeve: 'sp', years: '2001+', desc: 'EAFE developed markets' },
-  { id: 'emerging_markets_eem', name: 'Emerging Markets', ticker: 'EEM', cat: 'International', sleeve: 'sp', years: '2003+', desc: 'EM equity' },
-  // Bonds
+  { id: 'sp500_price', name: 'S&P 500 Index', ticker: '^GSPC', cat: L, sleeve: 'sp', years: '1928+', desc: 'Headline large-cap index' },
+  { id: 'sp500_total_return', name: 'S&P 500 Total Return', ticker: '^SP500TR', cat: L, sleeve: 'sp', years: '1988+', desc: 'Dividends reinvested' },
+  { id: 'sp500_equal_weight', name: 'S&P 500 Equal Weight', ticker: 'RSP', cat: L, sleeve: 'sp', years: '2003+', desc: 'Equal-weight proxy' },
+  { id: 'sp500_growth', name: 'S&P 500 Growth', ticker: 'IVW', cat: L, sleeve: 'sp', years: '2000+', desc: 'Growth tilt' },
+  { id: 'sp500_value', name: 'S&P 500 Value', ticker: 'IVE', cat: L, sleeve: 'sp', years: '2000+', desc: 'Value tilt' },
+  { id: 'sp500_quality', name: 'Quality Factor', ticker: 'SPHQ', cat: F, sleeve: 'sp', years: '2005+', desc: 'Quality screen' },
+  { id: 'sp500_momentum', name: 'Momentum Factor', ticker: 'SPMO', cat: F, sleeve: 'sp', years: '2015+', desc: 'Momentum screen' },
+  { id: 'sp500_dividend_aristocrats', name: 'Dividend Aristocrats', ticker: 'NOBL', cat: F, sleeve: 'sp', years: '2013+', desc: '25+ yr dividend growers' },
+  { id: 'total_us_market_vti', name: 'Total U.S. Market', ticker: 'VTI', cat: B, sleeve: 'sp', years: '2001+', desc: 'Full market cap-weighted' },
+  { id: 'russell_3000_iwv', name: 'Russell 3000', ticker: 'IWV', cat: B, sleeve: 'sp', years: '2000+', desc: '3,000 largest U.S. stocks' },
+  { id: 'wilshire_5000_yahoo', name: 'Wilshire 5000', ticker: '^W5000', cat: B, sleeve: 'sp', years: '1988+', desc: 'Broadest U.S. index' },
+  { id: 'us_reit_vnq', name: 'U.S. REITs', ticker: 'VNQ', cat: R, sleeve: 'sp', years: '2004+', desc: 'Broad U.S. REIT fund' },
+  { id: 'us_reit_iyr', name: 'U.S. Real Estate', ticker: 'IYR', cat: R, sleeve: 'sp', years: '2000+', desc: 'Real estate sector' },
+  { id: 'developed_ex_us_efa', name: 'Developed ex-U.S.', ticker: 'EFA', cat: I, sleeve: 'sp', years: '2001+', desc: 'EAFE developed markets' },
+  { id: 'emerging_markets_eem', name: 'Emerging Markets', ticker: 'EEM', cat: I, sleeve: 'sp', years: '2003+', desc: 'EM equity' },
   { id: 'total_bond_market_bnd', name: 'Total Bond Market', ticker: 'BND', cat: 'Bonds', sleeve: 'bd', years: '2007+', desc: 'U.S. aggregate bonds' },
   { id: 'ten_year_treasury_yield', name: '10-Year Treasury', ticker: 'DGS10', cat: 'Bonds', sleeve: 'bd', years: '1962+', desc: 'Constant maturity model' },
-  // Gold
   { id: 'gold_gld', name: 'Gold ETF', ticker: 'GLD', cat: 'Gold', sleeve: 'gd', years: '2004+', desc: 'Physical gold fund' },
   { id: 'gold_futures_yahoo', name: 'Gold Futures', ticker: 'GC=F', cat: 'Gold', sleeve: 'gd', years: '2000+', desc: 'Continuous futures' },
 ];
@@ -89,20 +85,23 @@ function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 let worker = null;
 function initWorker(ctx) {
-  const el = document.getElementById('worker-src');
-  if (!el || !el.textContent.trim()) return;
-  worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })));
-  worker.onmessage = ev => {
-    if (ev.data.type === 'result') ctx._onResult(ev.data);
-    else if (ev.data.type === 'spotlight') ctx._onSpotlight(ev.data);
-  };
+  try {
+    const el = document.getElementById('worker-src');
+    if (!el || !el.textContent.trim()) return;
+    worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })));
+    worker.onmessage = ev => {
+      if (ev.data.type === 'result') ctx._onResult(ev.data);
+      else if (ev.data.type === 'spotlight') ctx._onSpotlight(ev.data);
+    };
+    worker.onerror = e => captureError(e, { context: 'worker' });
+  } catch (e) { captureError(e, { context: 'initWorker' }); }
 }
 
 export function calculator() {
   return {
     version: __APP_VERSION__,
     showResults: false, loading: false, resultTab: 'income',
-    showAdvanced: false, showCustom: false, spotIdx: null,
+    showAdvanced: false, showCustom: false, showHelp: false, spotIdx: null,
 
     savings: 1000000, years: 30,
     goalPreset: 'preserve', retainPct: 100,
@@ -177,11 +176,19 @@ export function calculator() {
 
     isInPortfolio(id) { return this.portfolio.some(p => p.id === id); },
     addAsset(id) {
-      if (!this.isInPortfolio(id)) this.portfolio = [...this.portfolio, { id, weight: 0 }];
+      if (!this.isInPortfolio(id)) {
+        this.portfolio = [...this.portfolio, { id, weight: 0 }];
+        ga.trackAssetAdd(id, this.assetName(id));
+      }
     },
-    removeAsset(id) { this.portfolio = this.portfolio.filter(p => p.id !== id); },
+    removeAsset(id) {
+      ga.trackAssetRemove(id, this.assetName(id));
+      this.portfolio = this.portfolio.filter(p => p.id !== id);
+    },
     updateWeight(id, val) {
-      this.portfolio = this.portfolio.map(p => p.id === id ? { ...p, weight: Math.max(0, parseFloat(val) || 0) } : p);
+      const w = Math.max(0, parseFloat(val) || 0);
+      this.portfolio = this.portfolio.map(p => p.id === id ? { ...p, weight: w } : p);
+      ga.trackAssetWeightChange(id, w);
     },
     assetName(id) { const a = ASSETS.find(x => x.id === id); return a ? a.name : id; },
 
@@ -226,6 +233,7 @@ export function calculator() {
       this.goalPreset = p;
       if (p === 'preserve') this.retainPct = 100;
       else if (p === 'spend') this.retainPct = 0;
+      ga.trackGoalPreset(p);
     },
     setStrategy(name) {
       this.strategyPreset = name;
@@ -233,18 +241,26 @@ export function calculator() {
       if (name === 'stocks') this.portfolio = [{ id: 'sp500_price', weight: 100 }];
       else if (name === 'balanced') this.portfolio = [{ id: 'total_us_market_vti', weight: 60 }, { id: 'ten_year_treasury_yield', weight: 40 }];
       else if (name === 'conservative') this.portfolio = [{ id: 'total_us_market_vti', weight: 40 }, { id: 'ten_year_treasury_yield', weight: 40 }, { id: 'gold_gld', weight: 20 }];
+      ga.trackStrategySelect(name);
+      if (name === 'custom') ga.trackCustomPortfolioOpen();
     },
 
-    selectSpot(s) { this.spotIdx = +s; if (worker) worker.postMessage({ type: 'spotlight', s: +s }); },
-    selectSpotWorst() { const w = this.worstCase; if (w) this.selectSpot(w.s); },
-    selectSpotBest() { if (!this.rows.length) return; this.selectSpot(this.rows.reduce((b, r) => r.endRatio > b.endRatio ? r : b, this.rows[0]).s); },
-    selectSpotTypical() { if (!this.rows.length) return; this.selectSpot(this.rows[Math.floor(this.rows.length / 2)].s); },
+    selectSpot(s) {
+      this.spotIdx = +s;
+      if (worker) worker.postMessage({ type: 'spotlight', s: +s });
+    },
+    selectSpotWorst() { const w = this.worstCase; if (w) { this.selectSpot(w.s); ga.trackSpotlightSelect('worst', w.start); } },
+    selectSpotBest() { if (!this.rows.length) return; const b = this.rows.reduce((best, r) => r.endRatio > best.endRatio ? r : best, this.rows[0]); this.selectSpot(b.s); ga.trackSpotlightSelect('best', b.start); },
+    selectSpotTypical() { if (!this.rows.length) return; const t = this.rows[Math.floor(this.rows.length / 2)]; this.selectSpot(t.s); ga.trackSpotlightSelect('typical', t.start); },
 
     calculate() {
       const s = this.sleeves;
       if (s.sp + s.bd + s.gd <= 0) { this.portfolio = [{ id: 'sp500_price', weight: 100 }]; return this.calculate(); }
       if (!worker) { initWorker(this); if (!worker) { setTimeout(() => this.calculate(), 200); return; } }
       this.loading = true; this.showResults = false;
+      this._calcStart = Date.now();
+      ga.trackCalculateStart(this);
+      addBreadcrumb('Calculate started', 'calculation', { savings: this.savings, years: this.years, strategy: this.strategyPreset });
       const msg = {
         type: 'run', floorMode: this.floorMode, capMode: this.capMode,
         years: clamp(this.years, 5, 100), minA: clamp(this.minFloorPct, 4, 10),
@@ -261,6 +277,11 @@ export function calculator() {
     _onResult(m) {
       this.loading = false; this.result = m.best; this.rows = m.rows || [];
       this.showResults = true; this.resultTab = 'income';
+      ga.trackCalculateComplete({
+        heroMonthly: this.heroMonthly, heroPassRate: this.heroPassRate,
+        heroConfidence: this.heroConfidence, periodCount: this.periodCount,
+        failCount: this.failCount, durationMs: Date.now() - (this._calcStart || Date.now()),
+      });
       if (!this.rows.length) return;
       this.spotOptions = this.rows.map(r => ({ s: r.s, label: r.start + ' \u2013 ' + r.end }));
       this.$nextTick(() => {
@@ -274,25 +295,23 @@ export function calculator() {
       this.$nextTick(() => { renderSpotlight('chartSpotlight', m.traj); });
     },
 
+    _trackTableExpand() { ga.trackTableExpand(); },
+    _trackRowClick(start) { ga.trackTableRowClick(start); },
     _syncToUrl() {
       writeParams(this);
     },
 
     init() {
       initWorker(this);
-      // Read URL params on load
       const params = readParams();
       for (const [k, v] of Object.entries(params)) {
-        if (k === 'portfolio') { this.portfolio = v; }
-        else if (k in this) { this[k] = v; }
+        if (k === 'portfolio') this.portfolio = v;
+        else if (k in this) this[k] = v;
       }
-      // Set showCustom if strategy is custom
       if (this.strategyPreset === 'custom') this.showCustom = true;
-      // Watch all config keys and sync to URL
-      for (const k of PARAM_KEYS) {
-        this.$watch(k, () => this._syncToUrl());
-      }
+      for (const k of PARAM_KEYS) this.$watch(k, () => this._syncToUrl());
       this.$watch('portfolio', () => this._syncToUrl());
+      ga.wireWatchers(this);
     },
   };
 }
