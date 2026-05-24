@@ -103,7 +103,8 @@ export function calculator() {
   return {
     version: __APP_VERSION__,
     showResults: false, loading: false, resultTab: 'income',
-    showAdvanced: false, showCustom: false, showHelp: false, spotIdx: null,
+    showAdvanced: false, showCustom: false, showHelp: false,
+    linkCopied: false, spotIdx: null,
 
     savings: 1000000, years: 30,
     goalPreset: 'preserve', retainPct: 100,
@@ -231,28 +232,18 @@ export function calculator() {
     rowAvg(r) { return money(r.avgAnnualReal / 12); },
     rowEnd(r) { return (r.endRatio * 100).toFixed(0) + '%'; },
 
-    setGoalPreset(p) {
-      this.goalPreset = p;
-      if (p === 'preserve') this.retainPct = 100;
-      else if (p === 'spend') this.retainPct = 0;
-      ga.trackGoalPreset(p);
-    },
-    setStrategy(name) {
-      this.strategyPreset = name;
-      this.showCustom = name === 'custom';
-      if (name === 'stocks') this.portfolio = [{ id: 'sp500_price', weight: 100 }];
-      else if (name === 'balanced') this.portfolio = [{ id: 'total_us_market_vti', weight: 60 }, { id: 'ten_year_treasury_yield', weight: 40 }];
-      else if (name === 'conservative') this.portfolio = [{ id: 'total_us_market_vti', weight: 40 }, { id: 'ten_year_treasury_yield', weight: 40 }, { id: 'gold_gld', weight: 20 }];
-      ga.trackStrategySelect(name);
-      if (name === 'custom') ga.trackCustomPortfolioOpen();
+    setGoalPreset(p) { this.goalPreset = p; if (p === 'preserve') this.retainPct = 100; else if (p === 'spend') this.retainPct = 0; ga.trackGoalPreset(p); },
+    setStrategy(n) {
+      this.strategyPreset = n; this.showCustom = n === 'custom';
+      if (n === 'stocks') this.portfolio = [{ id: 'sp500_price', weight: 100 }];
+      else if (n === 'balanced') this.portfolio = [{ id: 'total_us_market_vti', weight: 60 }, { id: 'ten_year_treasury_yield', weight: 40 }];
+      else if (n === 'conservative') this.portfolio = [{ id: 'total_us_market_vti', weight: 40 }, { id: 'ten_year_treasury_yield', weight: 40 }, { id: 'gold_gld', weight: 20 }];
+      ga.trackStrategySelect(n); if (n === 'custom') ga.trackCustomPortfolioOpen();
     },
 
-    selectSpot(s) {
-      this.spotIdx = +s;
-      if (worker) worker.postMessage({ type: 'spotlight', s: +s });
-    },
+    selectSpot(s) { this.spotIdx = +s; if (worker) worker.postMessage({ type: 'spotlight', s: +s }); },
     selectSpotWorst() { const w = this.worstCase; if (w) { this.selectSpot(w.s); ga.trackSpotlightSelect('worst', w.start); } },
-    selectSpotBest() { if (!this.rows.length) return; const b = this.rows.reduce((best, r) => r.endRatio > best.endRatio ? r : best, this.rows[0]); this.selectSpot(b.s); ga.trackSpotlightSelect('best', b.start); },
+    selectSpotBest() { if (!this.rows.length) return; const b = this.rows.reduce((x, r) => r.endRatio > x.endRatio ? r : x, this.rows[0]); this.selectSpot(b.s); ga.trackSpotlightSelect('best', b.start); },
     selectSpotTypical() { if (!this.rows.length) return; const t = this.rows[Math.floor(this.rows.length / 2)]; this.selectSpot(t.s); ga.trackSpotlightSelect('typical', t.start); },
 
     calculate() {
@@ -297,6 +288,12 @@ export function calculator() {
       this.$nextTick(() => { renderSpotlight('chartSpotlight', m.traj); });
     },
 
+    copyShareLink() {
+      this._syncToUrl();
+      navigator.clipboard.writeText(window.location.href)
+        .then(() => { this.linkCopied = true; ga.trackUrlShare(); setTimeout(() => { this.linkCopied = false; }, 2000); })
+        .catch(() => window.prompt('Copy this link:', window.location.href));
+    },
     _trackTableExpand() { ga.trackTableExpand(); },
     _trackRowClick(s) { ga.trackTableRowClick(s); },
     _syncToUrl() { writeParams(this); },

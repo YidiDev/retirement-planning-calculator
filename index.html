@@ -294,6 +294,23 @@
       </div>
     </div>
 
+    <!-- Share bar -->
+    <div class="share-bar">
+      <div style="flex:1;min-width:0">
+        <p style="font-size:0.82rem;font-weight:500;color:var(--ink)">
+          <span style="margin-right:4px">&#128279;</span>
+          This result is saved in your URL
+        </p>
+        <p style="font-size:0.75rem;color:var(--ink-light)">
+          Bookmark it or share it &mdash; anyone with this link sees the same analysis.
+        </p>
+      </div>
+      <button type="button" @click="copyShareLink()"
+        class="share-btn" :class="linkCopied && 'share-btn-copied'">
+        <span x-text="linkCopied ? 'Copied!' : 'Copy link'"></span>
+      </button>
+    </div>
+
     <div class="summary-box" x-text="summaryPhrase"></div>
 
     <div class="card" x-show="result">
