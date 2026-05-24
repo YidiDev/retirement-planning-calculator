@@ -1,16 +1,18 @@
 export function tableSectionTemplate() {
   return `
   <template x-if="showResults && rows.length > 0">
-    <section class="mx-4 sm:mx-auto sm:max-w-2xl card mb-5">
+    <section class="card mb-6">
       <details>
-        <summary class="text-sm font-bold text-primary cursor-pointer select-none">
+        <summary class="text-sm font-bold text-primary cursor-pointer
+          select-none py-1">
           See all <span x-text="periodCount"></span> simulated retirements
         </summary>
 
-        <p class="text-xs text-muted mt-3 mb-3">
+        <p class="text-xs text-muted mt-4 mb-4">
           <span x-text="periodCount"></span> periods tested.
           <template x-if="failCount === 0">
-            <span class="font-bold text-success">Every one met the goal.</span>
+            <span class="font-bold text-success">
+              Every one met the goal.</span>
           </template>
           <template x-if="failCount > 0">
             <span class="font-bold text-danger"
