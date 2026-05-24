@@ -12,11 +12,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    manifest: true,
+    manifest: false,
+    codeSplitting: false,
     rollupOptions: {
       output: {
-        entryFileNames: 'assets/[name]-[hash].js',
-        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/app-[hash].js',
         assetFileNames: 'assets/[name]-[hash][extname]',
       },
     },
