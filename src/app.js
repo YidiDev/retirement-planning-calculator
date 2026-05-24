@@ -2,7 +2,11 @@ import { renderIncome, renderPreserve, renderSpotlight } from './charts.js';
 import * as ga from './analytics.js';
 import { addBreadcrumb, captureError } from './sentry.js';
 
-const L = 'U.S. Large Cap', F = 'Factor Strategies', B = 'Broad U.S. Market', R = 'Real Estate', I = 'International';
+const L = 'U.S. Large Cap';
+const F = 'Factor Strategies';
+const B = 'Broad U.S. Market';
+const R = 'Real Estate';
+const I = 'International';
 const ASSETS = [
   { id: 'sp500_price', name: 'S&P 500 Index', ticker: '^GSPC', cat: L, sleeve: 'sp', years: '1928+', desc: 'Headline large-cap index' },
   { id: 'sp500_total_return', name: 'S&P 500 Total Return', ticker: '^SP500TR', cat: L, sleeve: 'sp', years: '1988+', desc: 'Dividends reinvested' },
@@ -26,9 +30,17 @@ const ASSETS = [
 ];
 
 function assetCategories() {
-  const cats = []; const seen = new Set();
-  for (const a of ASSETS) { if (!seen.has(a.cat)) { seen.add(a.cat); cats.push(a.cat); } }
-  return cats;
+  const categories = [];
+  const seen = new Set();
+
+  for (const asset of ASSETS) {
+    if (!seen.has(asset.cat)) {
+      seen.add(asset.cat);
+      categories.push(asset.cat);
+    }
+  }
+
+  return categories;
 }
 
 /* ── URL state sync ── */
@@ -46,81 +58,154 @@ function readParams() {
     out[k] = NUM_KEYS.has(k) ? parseFloat(p.get(k)) : p.get(k);
   }
   if (p.has('portfolio')) {
-    try { out.portfolio = JSON.parse(p.get('portfolio')); } catch (e) { void e; }
+    try {
+      out.portfolio = JSON.parse(p.get('portfolio'));
+    } catch (error) {
+      void error;
+    }
+  }
+  if (p.has('run')) {
+    out._autoRun = true;
   }
   return out;
 }
 
-const DEFAULTS = { savings: 1000000, years: 30, goalPreset: 'preserve', retainPct: 100,
-  strategyPreset: 'stocks', floorMode: 'usd', minFloorPct: 4, minIncome: 3000,
-  capMode: 'usd', maxCapPct: 9, maxIncome: 12000, lookback: 1, recalc: 1 };
-const DEFAULT_PORTFOLIO = '[{"id":"sp500_price","weight":100}]';
+const DEFAULTS = {
+  savings: 1000000,
+  years: 30,
+  goalPreset: 'spend',
+  retainPct: 0,
+  strategyPreset: 'balanced',
+  floorMode: 'usd',
+  minFloorPct: 4,
+  minIncome: 3000,
+  capMode: 'usd',
+  maxCapPct: 6,
+  maxIncome: 6000,
+  lookback: 12,
+  recalc: 12,
+};
+const DEFAULT_PORTFOLIO = '[{"id":"total_us_market_vti","weight":60},{"id":"ten_year_treasury_yield","weight":40}]';
 
 function writeParams(state) {
   const p = new URLSearchParams();
   for (const k of PARAM_KEYS) {
     const v = state[k];
-    if (v !== undefined && v !== null && v !== DEFAULTS[k]) p.set(k, String(v));
+    if (v !== undefined && v !== null && v !== DEFAULTS[k]) {
+      p.set(k, String(v));
+    }
   }
   const pj = JSON.stringify(state.portfolio);
-  if (pj !== DEFAULT_PORTFOLIO) p.set('portfolio', pj);
+  if (pj !== DEFAULT_PORTFOLIO) {
+    p.set('portfolio', pj);
+  }
+  if (state.showResults) {
+    p.set('run', '1');
+  }
   const qs = p.toString();
   const url = window.location.pathname + (qs ? '?' + qs : '');
   window.history.replaceState(null, '', url);
 }
 
-function money(v) { return '$' + Math.round(v).toLocaleString('en-US'); }
+function money(v) {
+  return '$' + Math.round(v).toLocaleString('en-US');
+}
+
 function moneyK(v) {
-  if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
-  if (Math.abs(v) >= 1000) return '$' + (Math.round(v / 100) / 10) + 'k';
+  if (Math.abs(v) >= 1e6) {
+    return '$' + (v / 1e6).toFixed(1) + 'M';
+  }
+  if (Math.abs(v) >= 1000) {
+    return '$' + (Math.round(v / 100) / 10) + 'k';
+  }
   return '$' + Math.round(v);
 }
-function median(a) { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; }
+
+function median(a) {
+  const sorted = a.slice().sort((x, y) => x - y);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
 function passLabel(r) {
-  if (r.n_pass >= r.n_windows) return '100%';
+  if (r.n_pass >= r.n_windows) {
+    return '100%';
+  }
   const s = (r.n_pass / r.n_windows * 100).toFixed(1);
   return s === '100.0' ? '99.9%' : s + '%';
 }
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+function clamp(v, lo, hi) {
+  return Math.max(lo, Math.min(hi, v));
+}
 
 let worker = null;
 function initWorker(ctx) {
   try {
     const el = document.getElementById('worker-src');
     if (!el || !el.textContent.trim()) return;
-    worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })));
+    worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })), { type: 'module' });
     worker.onmessage = ev => {
       if (ev.data.type === 'result') ctx._onResult(ev.data);
       else if (ev.data.type === 'spotlight') ctx._onSpotlight(ev.data);
     };
     worker.onerror = e => captureError(e, { context: 'worker' });
-  } catch (e) { captureError(e, { context: 'initWorker' }); }
+  } catch (e) {
+    captureError(e, { context: 'initWorker' });
+  }
 }
 
 export function calculator() {
   return {
     version: __APP_VERSION__,
-    showResults: false, loading: false, resultTab: 'income',
-    showAdvanced: false, showCustom: false, showHelp: false, spotIdx: null,
+    showResults: false,
+    loading: false,
+    resultTab: 'income',
+    showAdvanced: false,
+    showCustom: false,
+    showHelp: false,
+    linkCopied: false,
+    spotIdx: null,
 
-    savings: 1000000, years: 30,
-    goalPreset: 'preserve', retainPct: 100,
-    strategyPreset: 'stocks',
-    portfolio: [{ id: 'sp500_price', weight: 100 }],
+    savings: 1000000,
+    years: 30,
+    goalPreset: 'spend',
+    retainPct: 0,
+    strategyPreset: 'balanced',
+    portfolio: [
+      { id: 'total_us_market_vti', weight: 60 },
+      { id: 'ten_year_treasury_yield', weight: 40 },
+    ],
 
-    floorMode: 'usd', minFloorPct: 4, minIncome: 3000,
-    capMode: 'usd', maxCapPct: 9, maxIncome: 12000,
-    lookback: 1, recalc: 1,
+    floorMode: 'usd',
+    minFloorPct: 4,
+    minIncome: 3000,
+    capMode: 'usd',
+    maxCapPct: 6,
+    maxIncome: 6000,
+    lookback: 12,
+    recalc: 12,
 
-    result: null, rows: [], spotlight: null, spotOptions: [],
+    result: null,
+    rows: [],
+    spotlight: null,
+    spotOptions: [],
 
     money, moneyK,
     get assets() { return ASSETS; },
     get categories() { return assetCategories(); },
     assetsByCat(cat) { return ASSETS.filter(a => a.cat === cat); },
-    assetTicker(id) { const a = ASSETS.find(x => x.id === id); return a ? a.ticker : ''; },
-    assetYears(id) { const a = ASSETS.find(x => x.id === id); return a ? a.years : ''; },
-    assetDesc(id) { const a = ASSETS.find(x => x.id === id); return a ? a.desc : ''; },
+    assetTicker(id) {
+      const asset = ASSETS.find(x => x.id === id);
+      return asset ? asset.ticker : '';
+    },
+    assetYears(id) {
+      const asset = ASSETS.find(x => x.id === id);
+      return asset ? asset.years : '';
+    },
+    assetDesc(id) {
+      const asset = ASSETS.find(x => x.id === id);
+      return asset ? asset.desc : '';
+    },
 
     get withdrawalWarning() {
       const warnings = [];
@@ -151,12 +236,17 @@ export function calculator() {
       for (const p of this.portfolio) {
         const a = ASSETS.find(x => x.id === p.id);
         const w = Math.max(0, parseFloat(p.weight) || 0);
-        if (a) { o[a.sleeve] += w; o.total += w; }
+        if (a) {
+          o[a.sleeve] += w;
+          o.total += w;
+        }
       }
       return o;
     },
     get sleeveBarStyles() {
-      const s = this.sleeves, t = s.total || 1;
+      const s = this.sleeves;
+      const t = s.total || 1;
+
       return {
         sp: (s.sp / t * 100).toFixed(1) + '%',
         bd: (s.bd / t * 100).toFixed(1) + '%',
@@ -167,14 +257,20 @@ export function calculator() {
       const s = this.sleeves;
       if (s.total <= 0) return '';
       const t = s.total || 1;
-      const sp = Math.round(s.sp / t * 100), bd = Math.round(s.bd / t * 100), gd = Math.round(s.gd / t * 100);
+      const sp = Math.round(s.sp / t * 100);
+      const bd = Math.round(s.bd / t * 100);
+      const gd = Math.round(s.gd / t * 100);
       let note = sp + '% stocks, ' + bd + '% bonds, ' + gd + '% gold';
-      if (Math.abs(s.total - 100) > 0.5) note += ' (weights rescaled from ' + Math.round(s.total) + '%)';
+      if (Math.abs(s.total - 100) > 0.5) {
+        note += ' (weights rescaled from ' + Math.round(s.total) + '%)';
+      }
       if (s.gd > 0) note += '. Gold limits data to 1968\u20132023.';
       return note;
     },
 
-    isInPortfolio(id) { return this.portfolio.some(p => p.id === id); },
+    isInPortfolio(id) {
+      return this.portfolio.some(p => p.id === id);
+    },
     addAsset(id) {
       if (!this.isInPortfolio(id)) {
         this.portfolio = [...this.portfolio, { id, weight: 0 }];
@@ -190,13 +286,18 @@ export function calculator() {
       this.portfolio = this.portfolio.map(p => p.id === id ? { ...p, weight: w } : p);
       ga.trackAssetWeightChange(id, w);
     },
-    assetName(id) { const a = ASSETS.find(x => x.id === id); return a ? a.name : id; },
+    assetName(id) {
+      const asset = ASSETS.find(x => x.id === id);
+      return asset ? asset.name : id;
+    },
 
     get heroMonthly() {
       if (!this.rows.length) return '$0';
       return money(median(this.rows.map(r => r.firstYearReal)) / 12);
     },
-    get heroPassRate() { return this.result ? passLabel(this.result) : '0%'; },
+    get heroPassRate() {
+      return this.result ? passLabel(this.result) : '0%';
+    },
     get heroConfidence() {
       if (!this.result) return 'neutral';
       const rate = this.result.n_pass / this.result.n_windows;
@@ -205,8 +306,12 @@ export function calculator() {
       if (rate >= 0.85) return 'fair';
       return 'low';
     },
-    get periodCount() { return this.rows.length; },
-    get failCount() { return this.rows.filter(r => !r.passed).length; },
+    get periodCount() {
+      return this.rows.length;
+    },
+    get failCount() {
+      return this.rows.filter(r => !r.passed).length;
+    },
     get typicalAvgIncome() {
       if (!this.rows.length) return '$0/mo';
       return money(median(this.rows.map(r => r.avgAnnualReal)) / 12) + '/mo';
@@ -217,7 +322,8 @@ export function calculator() {
     },
     get summaryPhrase() {
       if (!this.result || !this.rows.length) return '';
-      const b = this.result, n = this.rows.length;
+      const b = this.result;
+      const n = this.rows.length;
       const floor = this.floorMode === 'usd' ? money(b.D) + '/mo' : b.aPct.toFixed(2) + '%/yr';
       const cap = this.capMode === 'usd' ? money(b.C) + '/mo' : b.bPct.toFixed(2) + '%/yr';
       return 'Tested against ' + n + ' historical retirements spanning ' + this.years + ' years each. ' +
@@ -229,35 +335,82 @@ export function calculator() {
     rowAvg(r) { return money(r.avgAnnualReal / 12); },
     rowEnd(r) { return (r.endRatio * 100).toFixed(0) + '%'; },
 
-    setGoalPreset(p) {
-      this.goalPreset = p;
-      if (p === 'preserve') this.retainPct = 100;
-      else if (p === 'spend') this.retainPct = 0;
-      ga.trackGoalPreset(p);
+    setGoalPreset(preset) {
+      this.goalPreset = preset;
+      if (preset === 'preserve') {
+        this.retainPct = 100;
+      } else if (preset === 'spend') {
+        this.retainPct = 0;
+      }
+      ga.trackGoalPreset(preset);
     },
+
     setStrategy(name) {
       this.strategyPreset = name;
       this.showCustom = name === 'custom';
-      if (name === 'stocks') this.portfolio = [{ id: 'sp500_price', weight: 100 }];
-      else if (name === 'balanced') this.portfolio = [{ id: 'total_us_market_vti', weight: 60 }, { id: 'ten_year_treasury_yield', weight: 40 }];
-      else if (name === 'conservative') this.portfolio = [{ id: 'total_us_market_vti', weight: 40 }, { id: 'ten_year_treasury_yield', weight: 40 }, { id: 'gold_gld', weight: 20 }];
+      if (name === 'stocks') {
+        this.portfolio = [{ id: 'sp500_price', weight: 100 }];
+      } else if (name === 'balanced') {
+        this.portfolio = [
+          { id: 'total_us_market_vti', weight: 60 },
+          { id: 'ten_year_treasury_yield', weight: 40 },
+        ];
+      } else if (name === 'conservative') {
+        this.portfolio = [
+          { id: 'total_us_market_vti', weight: 40 },
+          { id: 'ten_year_treasury_yield', weight: 40 },
+          { id: 'gold_gld', weight: 20 },
+        ];
+      }
       ga.trackStrategySelect(name);
-      if (name === 'custom') ga.trackCustomPortfolioOpen();
+      if (name === 'custom') {
+        ga.trackCustomPortfolioOpen();
+      }
     },
 
     selectSpot(s) {
       this.spotIdx = +s;
-      if (worker) worker.postMessage({ type: 'spotlight', s: +s });
+      if (worker) {
+        worker.postMessage({ type: 'spotlight', s: +s });
+      }
     },
-    selectSpotWorst() { const w = this.worstCase; if (w) { this.selectSpot(w.s); ga.trackSpotlightSelect('worst', w.start); } },
-    selectSpotBest() { if (!this.rows.length) return; const b = this.rows.reduce((best, r) => r.endRatio > best.endRatio ? r : best, this.rows[0]); this.selectSpot(b.s); ga.trackSpotlightSelect('best', b.start); },
-    selectSpotTypical() { if (!this.rows.length) return; const t = this.rows[Math.floor(this.rows.length / 2)]; this.selectSpot(t.s); ga.trackSpotlightSelect('typical', t.start); },
+    selectSpotWorst() {
+      const w = this.worstCase;
+      if (w) {
+        this.selectSpot(w.s);
+        ga.trackSpotlightSelect('worst', w.start);
+      }
+    },
+    selectSpotBest() {
+      if (!this.rows.length) return;
+      const best = this.rows.reduce((x, r) => r.endRatio > x.endRatio ? r : x, this.rows[0]);
+      this.selectSpot(best.s);
+      ga.trackSpotlightSelect('best', best.start);
+    },
+    selectSpotTypical() {
+      if (!this.rows.length) return;
+      const typical = this.rows[Math.floor(this.rows.length / 2)];
+      this.selectSpot(typical.s);
+      ga.trackSpotlightSelect('typical', typical.start);
+    },
 
     calculate() {
       const s = this.sleeves;
-      if (s.sp + s.bd + s.gd <= 0) { this.portfolio = [{ id: 'sp500_price', weight: 100 }]; return this.calculate(); }
-      if (!worker) { initWorker(this); if (!worker) { setTimeout(() => this.calculate(), 200); return; } }
-      this.loading = true; this.showResults = false;
+      if (s.sp + s.bd + s.gd <= 0) {
+        this.portfolio = [{ id: 'sp500_price', weight: 100 }];
+        return this.calculate();
+      }
+
+      if (!worker) {
+        initWorker(this);
+        if (!worker) {
+          setTimeout(() => this.calculate(), 200);
+          return;
+        }
+      }
+
+      this.loading = true;
+      this.showResults = false;
       this._calcStart = Date.now();
       ga.trackCalculateStart(this);
       addBreadcrumb('Calculate started', 'calculation', { savings: this.savings, years: this.years, strategy: this.strategyPreset });
@@ -295,23 +448,33 @@ export function calculator() {
       this.$nextTick(() => { renderSpotlight('chartSpotlight', m.traj); });
     },
 
-    _trackTableExpand() { ga.trackTableExpand(); },
-    _trackRowClick(start) { ga.trackTableRowClick(start); },
-    _syncToUrl() {
-      writeParams(this);
+    copyShareLink() {
+      this._syncToUrl();
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        this.linkCopied = true;
+        ga.trackUrlShare();
+        setTimeout(() => { this.linkCopied = false; }, 2000);
+      }).catch(() => {
+        window.prompt('Copy this link:', window.location.href);
+      });
     },
+    _trackTableExpand() { ga.trackTableExpand(); },
+    _trackRowClick(s) { ga.trackTableRowClick(s); },
+    _syncToUrl() { writeParams(this); },
 
     init() {
       initWorker(this);
       const params = readParams();
+      const autoRun = params._autoRun; delete params._autoRun;
       for (const [k, v] of Object.entries(params)) {
-        if (k === 'portfolio') this.portfolio = v;
-        else if (k in this) this[k] = v;
+        if (k === 'portfolio') this.portfolio = v; else if (k in this) this[k] = v;
       }
       if (this.strategyPreset === 'custom') this.showCustom = true;
       for (const k of PARAM_KEYS) this.$watch(k, () => this._syncToUrl());
       this.$watch('portfolio', () => this._syncToUrl());
+      this.$watch('showResults', () => this._syncToUrl());
       ga.wireWatchers(this);
+      if (autoRun) setTimeout(() => this.calculate(), 100);
     },
   };
 }
