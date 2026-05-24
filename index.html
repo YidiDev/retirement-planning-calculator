@@ -18,13 +18,6 @@
     <div x-html="tplHeader()"></div>
     <div x-html="tplSetup()"></div>
     <div x-html="tplWithdrawal()"></div>
-
-    <!-- Loading -->
-    <div x-show="loading" x-cloak class="text-center py-12 text-muted" aria-live="polite">
-      <div class="spin mx-auto mb-3"></div>
-      <p class="text-sm">Running simulation&hellip;</p>
-    </div>
-
     <div x-html="tplResults()"></div>
     <div x-html="tplCharts()"></div>
     <div x-html="tplTable()"></div>

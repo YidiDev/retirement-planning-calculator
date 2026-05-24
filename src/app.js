@@ -32,7 +32,7 @@ export function calculator() {
   return {
     version: __APP_VERSION__,
     showResults: false, loading: false, resultTab: 'income',
-    showAdvanced: false, showCustomPortfolio: false, spotIdx: null,
+    showAdvanced: false, showCustomPortfolio: false, showHelp: false, spotIdx: null,
 
     savings: 1000000, years: 30, goalPreset: 'preserve', retainPct: 100,
     strategyPreset: 'stocks',

@@ -7,18 +7,18 @@
 @source "./charts.js";
 
 @theme {
-  --color-bg: #f8f8fa;
+  --color-bg: #f0f1f5;
   --color-surface: #ffffff;
   --color-ink: #1a1d2e;
   --color-muted: #5f6478;
   --color-faint: #9ca0b0;
-  --color-border: #e4e6ee;
-  --color-soft: #f1f2f6;
+  --color-border: #d2d5e0;
+  --color-soft: #edeef3;
   --color-primary: #4338ca;
-  --color-primary-light: #eef0ff;
+  --color-primary-light: #e8eaff;
   --color-primary-muted: #6d64d9;
   --color-success: #0a8a5e;
-  --color-success-light: #e4f7ef;
+  --color-success-light: #dcf5eb;
   --color-warning: #b45309;
   --color-warning-light: #fef3e2;
   --color-danger: #d32f5a;
@@ -27,7 +27,6 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-
 html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
 body {
@@ -40,14 +39,24 @@ body {
 
 [x-cloak] { display: none !important; }
 
+/* ── Cards ── */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+}
+@media (min-width: 640px) { .card { padding: 28px; } }
+
 /* ── Inputs ── */
 input[type="number"], input[type="text"], select {
   width: 100%;
-  padding: 10px 12px;
-  border: 1px solid var(--color-border);
+  padding: 12px 14px;
+  border: 1.5px solid var(--color-border);
   border-radius: 10px;
   font: inherit;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-ink);
   background: var(--color-surface);
@@ -56,15 +65,15 @@ input[type="number"], input[type="text"], select {
 input:focus, select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(67, 56, 202, .15);
+  box-shadow: 0 0 0 3px rgba(67, 56, 202, .18);
 }
-input.has-suffix { padding-right: 54px; }
-input.has-prefix { padding-left: 24px; }
+input.has-suffix { padding-right: 56px; }
+input.has-prefix { padding-left: 28px; }
 
 .input-wrap { position: relative; }
 .input-wrap .suffix, .input-wrap .prefix {
   position: absolute; top: 50%; transform: translateY(-50%);
-  color: var(--color-faint); font-size: 13px; font-weight: 600;
+  color: var(--color-faint); font-size: 14px; font-weight: 600;
   pointer-events: none;
 }
 .input-wrap .prefix { left: 12px; }
@@ -73,22 +82,56 @@ input.has-prefix { padding-left: 24px; }
 /* ── Range slider ── */
 input[type="range"] {
   -webkit-appearance: none; appearance: none;
-  width: 100%; height: 6px; border-radius: 999px;
-  background: var(--color-border); outline: none;
-  margin: 8px 0 4px;
+  width: 100%; height: 8px; border-radius: 999px;
+  background: var(--color-soft); outline: none;
+  margin: 10px 0 6px; border: none; padding: 0;
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 20px; height: 20px; border-radius: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
   background: var(--color-primary); cursor: pointer;
   border: 3px solid var(--color-surface);
-  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  box-shadow: 0 2px 6px rgba(0,0,0,.22);
 }
 input[type="range"]::-moz-range-thumb {
-  width: 20px; height: 20px; border-radius: 50%;
+  width: 24px; height: 24px; border-radius: 50%;
   background: var(--color-primary); cursor: pointer;
   border: 3px solid var(--color-surface);
-  box-shadow: 0 1px 4px rgba(0,0,0,.18);
+  box-shadow: 0 2px 6px rgba(0,0,0,.22);
+}
+
+/* ── Segmented / pill buttons ── */
+.seg-btn {
+  padding: 10px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 10px;
+  font: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+.seg-btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.seg-btn-active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 0 0 1px var(--color-primary);
+}
+
+.pill-btn {
+  padding: 6px 12px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 999px;
+  font: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all .15s;
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+.pill-btn:hover { border-color: var(--color-primary); }
+.pill-btn-active {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* ── Chart containers ── */
@@ -97,19 +140,19 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Scrollable table ── */
 .table-scroll {
-  max-height: 360px; overflow: auto;
+  max-height: 400px; overflow: auto;
   border: 1px solid var(--color-border); border-radius: 12px;
 }
 .table-scroll table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 .table-scroll thead th {
   position: sticky; top: 0; z-index: 1;
-  background: #fafbfc; color: var(--color-muted);
+  background: var(--color-soft); color: var(--color-muted);
   font-size: 10px; font-weight: 700; letter-spacing: .06em;
-  text-transform: uppercase; padding: 10px 10px;
+  text-transform: uppercase; padding: 10px;
   text-align: right; border-bottom: 1px solid var(--color-border);
 }
 .table-scroll tbody td {
-  padding: 7px 10px; text-align: right;
+  padding: 8px 10px; text-align: right;
   border-bottom: 1px solid var(--color-border);
 }
 .table-scroll th:first-child, .table-scroll td:first-child { text-align: left; }
@@ -117,7 +160,11 @@ input[type="range"]::-moz-range-thumb {
 .table-scroll tr.fail td { background: var(--color-danger-light); }
 
 /* ── Sleeve bar ── */
-.sleeve-bar { display: flex; height: 10px; border-radius: 999px; background: #e0e2ec; overflow: hidden; }
+.sleeve-bar {
+  display: flex; height: 14px; border-radius: 999px;
+  background: var(--color-soft); overflow: hidden;
+  border: 1px solid var(--color-border);
+}
 .sleeve-bar span { min-width: 0; transition: width .3s; }
 .sleeve-eq { background: var(--color-primary); }
 .sleeve-bd { background: var(--color-success); }
@@ -125,12 +172,13 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Loading ── */
 .spin {
-  width: 32px; height: 32px;
+  width: 28px; height: 28px;
   border: 3px solid var(--color-border);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin .8s linear infinite;
 }
+.spin-sm { width: 18px; height: 18px; border-width: 2.5px; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── Pill badges ── */
@@ -143,3 +191,44 @@ input[type="range"]::-moz-range-thumb {
 
 /* ── Tab numeric ── */
 .tnum { font-variant-numeric: tabular-nums; }
+
+/* ── Primary action button ── */
+.btn-primary {
+  display: block; width: 100%;
+  padding: 16px; border: none; border-radius: 14px;
+  background: var(--color-primary); color: #fff;
+  font: inherit; font-size: 16px; font-weight: 800;
+  cursor: pointer; transition: transform .1s, background .15s;
+  box-shadow: 0 2px 8px rgba(67, 56, 202, .35);
+}
+.btn-primary:hover { background: #3730a3; }
+.btn-primary:active { transform: scale(.98); }
+.btn-primary:disabled { opacity: .7; cursor: wait; }
+
+/* ── Tab bar ── */
+.tab-bar {
+  display: flex; gap: 4px;
+  background: var(--color-soft); border-radius: 12px;
+  padding: 4px;
+}
+.tab-btn {
+  flex: 1; padding: 10px 8px;
+  border: none; border-radius: 9px;
+  cursor: pointer; background: transparent;
+  font: inherit; font-size: 13px; font-weight: 700;
+  color: var(--color-muted); transition: all .15s;
+}
+.tab-btn-active {
+  background: var(--color-surface); color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0,0,0,.1);
+}
+
+/* ── Quick-pick chip ── */
+.chip-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--color-border); border-radius: 9px;
+  background: var(--color-surface); cursor: pointer;
+  font: inherit; font-size: 12px; font-weight: 700;
+  color: var(--color-ink); transition: all .15s;
+}
+.chip-btn:hover { background: var(--color-soft); }
