@@ -5,6 +5,7 @@ import './styles.css';
 import { calculator } from './app.js';
 import { privacyPage } from './pages/privacy.js';
 import { termsPage } from './pages/terms.js';
+import { donatePage } from './pages/donate.js';
 
 // GA4
 const gaId = typeof __GA_MEASUREMENT_ID__ !== 'undefined' ? __GA_MEASUREMENT_ID__ : '';
@@ -22,6 +23,7 @@ if (gaId) {
 // Page content on window for x-html
 window.privacyPage = privacyPage;
 window.termsPage = termsPage;
+window.donatePage = donatePage;
 
 Alpine.plugin(PineconeRouter);
 Alpine.data('calculator', calculator);

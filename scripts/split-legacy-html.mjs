@@ -12,10 +12,10 @@ function mustMatch(regex, label) {
   return match[1];
 }
 
-const styles = mustMatch(/<style>([\s\S]*?)<\/style>/, 'styles').trim();
-const bodyInner = mustMatch(/<body>([\s\S]*?)<script id="worker-src"/m, 'body').trim();
-const worker = mustMatch(/<script id="worker-src" type="javascript\/worker">([\s\S]*?)<\/script>/, 'worker').trim();
-const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1].trim());
+const styles = mustMatch(/<style>([\s\S]*?)<\/style>/i, 'styles').trim();
+const bodyInner = mustMatch(/<body>([\s\S]*?)<script id="worker-src"/im, 'body').trim();
+const worker = mustMatch(/<script id="worker-src" type="javascript\/worker">([\s\S]*?)<\/script>/i, 'worker').trim();
+const scripts = [...html.matchAll(/<script>([\s\S]*?)<\/script>/gi)].map((m) => m[1].trim());
 const calculator = scripts.at(-1);
 if (!calculator) throw new Error('Unable to extract calculator script');
 
