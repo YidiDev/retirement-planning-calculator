@@ -86,17 +86,27 @@ export function calculator() {
     assetDesc(id) { const a = ASSETS.find(x => x.id === id); return a ? a.desc : ''; },
 
     get withdrawalWarning() {
+      const warnings = [];
       const fDollar = this.floorMode !== 'pct';
       const cDollar = this.capMode !== 'pct';
+      const monthly = this.savings / 12;
+      // Floor vs cap
       if (fDollar && cDollar && this.minIncome >= this.maxIncome && this.maxIncome > 0) {
-        return 'Your minimum income ($' + this.minIncome.toLocaleString() + ') meets or exceeds your maximum ($' + this.maxIncome.toLocaleString() + '). The cap will be overridden.';
+        warnings.push('Your minimum ($' + this.minIncome.toLocaleString() + '/mo) meets or exceeds your maximum ($' + this.maxIncome.toLocaleString() + '/mo). The cap will be overridden.');
       }
       const fPct = this.floorMode !== 'usd';
       const cPct = this.capMode !== 'usd';
       if (fPct && cPct && this.minFloorPct >= this.maxCapPct) {
-        return 'Your floor rate (' + this.minFloorPct + '%) meets or exceeds your cap (' + this.maxCapPct + '%). The cap will be overridden.';
+        warnings.push('Your floor rate (' + this.minFloorPct + '%) meets or exceeds your cap (' + this.maxCapPct + '%). The cap will be overridden.');
       }
-      return '';
+      // Floor vs nest egg
+      if (fDollar && this.minIncome > 0 && this.minIncome >= monthly) {
+        warnings.push('Your minimum income ($' + this.minIncome.toLocaleString() + '/mo) would drain your entire $' + this.savings.toLocaleString() + ' nest egg within the first year. Check that both values are correct.');
+      }
+      if (cDollar && this.maxIncome > 0 && this.maxIncome >= monthly) {
+        warnings.push('Your maximum income ($' + this.maxIncome.toLocaleString() + '/mo) exceeds your monthly nest egg value. This will deplete savings very quickly.');
+      }
+      return warnings.join(' ');
     },
 
     get sleeves() {
