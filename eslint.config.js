@@ -3,8 +3,7 @@ import js from '@eslint/js';
 export default [
   js.configs.recommended,
   {
-    files: ['scripts/**/*.mjs', 'tests/**/*.mjs', 'tests/**/*.js', 'src/**/*.js'],
-    ignores: ['src/worker.js'],
+    files: ['functions/**/*.js', 'scripts/**/*.mjs', 'tests/**/*.mjs', 'tests/**/*.js', 'src/**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -20,6 +19,7 @@ export default [
         window: 'readonly',
         URLSearchParams: 'readonly',
         navigator: 'readonly',
+        Response: 'readonly',
         __APP_VERSION__: 'readonly',
         __GA_MEASUREMENT_ID__: 'readonly',
         __SENTRY_DSN__: 'readonly',
@@ -30,10 +30,8 @@ export default [
     files: ['src/worker.js'],
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'script',
+      sourceType: 'module',
       globals: {
-        onmessage: 'writable',
-        postMessage: 'readonly',
         Float64Array: 'readonly',
         Math: 'readonly',
         Infinity: 'readonly',
