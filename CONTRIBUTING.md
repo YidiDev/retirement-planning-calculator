@@ -62,7 +62,7 @@ tests/
 ## Code Style
 
 - ESLint enforces style for all `src/` and `scripts/` files
-- Max 320 lines per source file
+- Source files should stay focused and readable; tests warn when files grow too large
 - Use Alpine.js reactivity for all UI state
 - No Vite artifacts in production output
 

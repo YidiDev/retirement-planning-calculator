@@ -2,7 +2,7 @@
   "name": "retirement-planning-calculator",
   "version": "1.0.0",
   "type": "module",
-  "description": "A retirement withdrawal calculator and backtesting toolkit.",
+  "description": "A market-aware retirement withdrawal calculator stress-tested against historical U.S. market data.",
   "scripts": {
     "prebuild": "node scripts/inline-worker.mjs",
     "build": "vite build",
@@ -24,9 +24,21 @@
     "test:a11y": "npm run build && sh -c 'npm run preview > /tmp/retirement-vite-preview.log 2>&1 & PREVIEW_PID=$!; wait-on http://127.0.0.1:4173; node tests/a11y.mjs; STATUS=$?; kill $PREVIEW_PID 2>/dev/null || true; exit $STATUS'",
     "test": "npm-run-all check:version check:json check:js check:python lint test:unit test:a11y"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "retirement",
+    "withdrawal-rate",
+    "financial-planning",
+    "backtesting",
+    "fire",
+    "alpinejs",
+    "chartjs"
+  ],
+  "author": "YidiDev",
   "license": "MIT",
+  "homepage": "https://retirement.yidi.sh/",
+  "bugs": {
+    "url": "https://github.com/YidiDev/retirement-planning-calculator/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/YidiDev/retirement-planning-calculator.git"
