@@ -48,6 +48,7 @@ function readParams() {
   if (p.has('portfolio')) {
     try { out.portfolio = JSON.parse(p.get('portfolio')); } catch (e) { void e; }
   }
+  if (p.has('run')) out._autoRun = true;
   return out;
 }
 
@@ -64,6 +65,7 @@ function writeParams(state) {
   }
   const pj = JSON.stringify(state.portfolio);
   if (pj !== DEFAULT_PORTFOLIO) p.set('portfolio', pj);
+  if (state.showResults) p.set('run', '1');
   const qs = p.toString();
   const url = window.location.pathname + (qs ? '?' + qs : '');
   window.history.replaceState(null, '', url);
@@ -296,22 +298,22 @@ export function calculator() {
     },
 
     _trackTableExpand() { ga.trackTableExpand(); },
-    _trackRowClick(start) { ga.trackTableRowClick(start); },
-    _syncToUrl() {
-      writeParams(this);
-    },
+    _trackRowClick(s) { ga.trackTableRowClick(s); },
+    _syncToUrl() { writeParams(this); },
 
     init() {
       initWorker(this);
       const params = readParams();
+      const autoRun = params._autoRun; delete params._autoRun;
       for (const [k, v] of Object.entries(params)) {
-        if (k === 'portfolio') this.portfolio = v;
-        else if (k in this) this[k] = v;
+        if (k === 'portfolio') this.portfolio = v; else if (k in this) this[k] = v;
       }
       if (this.strategyPreset === 'custom') this.showCustom = true;
       for (const k of PARAM_KEYS) this.$watch(k, () => this._syncToUrl());
       this.$watch('portfolio', () => this._syncToUrl());
+      this.$watch('showResults', () => this._syncToUrl());
       ga.wireWatchers(this);
+      if (autoRun) setTimeout(() => this.calculate(), 100);
     },
   };
 }
