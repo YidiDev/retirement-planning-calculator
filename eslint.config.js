@@ -16,6 +16,8 @@ export default [
         Worker: 'readonly',
         setTimeout: 'readonly',
         document: 'readonly',
+        window: 'readonly',
+        URLSearchParams: 'readonly',
         __APP_VERSION__: 'readonly',
       },
     },
