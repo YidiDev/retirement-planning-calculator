@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync, readdirSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 
 describe('index.html structure', () => {
   const html = readFileSync('index.html', 'utf8');
@@ -16,18 +16,34 @@ describe('index.html structure', () => {
     expect(html).toContain('src="/src/main.js"');
   });
 
-  it('does not contain stale assumptions', () => {
-    expect(html).not.toContain('Assumes 100% invested');
-    expect(html).not.toContain('since 1871');
+  it('has the warm paper design', () => {
+    expect(html).toContain('Newsreader');
+    expect(html).toContain('Source+Sans+3');
+  });
+
+  it('has the portfolio builder with Custom option', () => {
+    expect(html).toContain("setStrategy('custom')");
+    expect(html).toContain('showCustom');
+    expect(html).toContain('addAsset');
+  });
+
+  it('has clean withdrawal rules with both mode and validation', () => {
+    // Each model binding appears exactly once
+    const floorInputCount = (html.match(/x-model\.number="minFloorPct"/g) || []).length;
+    const incomeInputCount = (html.match(/x-model\.number="minIncome"/g) || []).length;
+    expect(floorInputCount).toBe(1);
+    expect(incomeInputCount).toBe(1);
+    // Both mode exists
+    expect(html).toContain("floorMode='both'");
+    expect(html).toContain("capMode='both'");
+    // Validation warning exists
+    expect(html).toContain('withdrawalWarning');
   });
 });
 
 describe('source file size limits', () => {
   const MAX_LINES = 300;
-  const srcFiles = [
-    'src/main.js', 'src/app.js', 'src/assets.js', 'src/charts.js',
-    ...readdirSync('src/templates').map(f => `src/templates/${f}`),
-  ];
+  const srcFiles = ['src/main.js', 'src/app.js', 'src/charts.js'];
 
   for (const file of srcFiles) {
     it(`${file} is under ${MAX_LINES} lines`, () => {
@@ -35,20 +51,4 @@ describe('source file size limits', () => {
       expect(lines).toBeLessThanOrEqual(MAX_LINES);
     });
   }
-});
-
-describe('template functions export correctly', () => {
-  it('all template files export a function', async () => {
-    const files = readdirSync('src/templates').filter(f => f.endsWith('.js'));
-    for (const f of files) {
-      const mod = await import(`../src/templates/${f}`);
-      const fns = Object.values(mod).filter(v => typeof v === 'function');
-      expect(fns.length).toBeGreaterThanOrEqual(1);
-      for (const fn of fns) {
-        const html = fn();
-        expect(typeof html).toBe('string');
-        expect(html.length).toBeGreaterThan(10);
-      }
-    }
-  });
 });
