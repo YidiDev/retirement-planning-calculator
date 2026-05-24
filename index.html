@@ -38,7 +38,7 @@
 <body>
 <div x-data class="container" x-cloak>
   <template x-route="/" x-template>
-    <main x-data="calculator">
+    <main x-data="calculator" aria-label="Retirement calculator">
 
   <!-- Calculator page content starts here -->
 
@@ -47,7 +47,7 @@
     <p style="font-size:0.95rem;max-width:520px;margin:0 auto">
       Find sustainable withdrawal rates backed by 150+ years of real market data.
     </p>
-    <button type="button" @click="showHelp = !showHelp"
+    <button type="button" @click="showHelp = !showHelp" aria-label="Toggle calculator explanation"
       style="margin-top:0.75rem;background:none;border:none;font-family:inherit;
         font-size:0.85rem;color:var(--sienna);cursor:pointer;
         text-decoration:underline;text-underline-offset:3px">
@@ -174,13 +174,14 @@
             <div style="display:grid;gap:4px">
               <template x-for="a in assetsByCat(cat)" :key="a.id">
                 <button type="button" @click="addAsset(a.id)"
+                  aria-label="Toggle portfolio asset"
                   style="display:flex;align-items:center;gap:10px;text-align:left;width:100%;padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border-light);background:transparent;font-family:inherit;cursor:pointer;transition:all .15s"
                   :style="isInPortfolio(a.id) ? 'background:var(--sienna);color:#fff;border-color:var(--sienna)' : ''"
                   :aria-pressed="isInPortfolio(a.id)">
-                  <div style="flex:1;min-width:0">
-                    <div style="font-size:0.85rem;font-weight:500" x-text="a.name"></div>
-                    <div style="font-size:0.72rem;opacity:0.7" x-text="a.desc"></div>
-                  </div>
+                  <span style="display:block;flex:1;min-width:0">
+                    <span style="display:block;font-size:0.85rem;font-weight:500" x-text="a.name"></span>
+                    <span style="display:block;font-size:0.72rem;opacity:0.7" x-text="a.desc"></span>
+                  </span>
                   <span style="font-size:0.75rem;opacity:0.6;white-space:nowrap" x-text="a.ticker + ' · ' + a.years"></span>
                 </button>
               </template>
@@ -245,6 +246,7 @@
 
     <!-- Advanced -->
     <button type="button" class="toggle-link" @click="showAdvanced=!showAdvanced"
+      aria-label="Toggle advanced settings"
       x-text="showAdvanced ? 'Hide advanced settings' : 'Advanced settings'"></button>
     <div x-show="showAdvanced" x-transition style="margin-top:1rem">
       <div class="grid-2">
@@ -264,7 +266,8 @@
 
   <!-- Calculate -->
   <div style="text-align:center;margin:2rem 0">
-    <button type="button" class="btn-primary" @click="calculate()" :disabled="loading">
+    <button type="button" class="btn-primary" @click="calculate()" :disabled="loading"
+      aria-label="Run retirement analysis">
       <template x-if="loading">
         <svg width="20" height="20" viewBox="0 0 24 24" style="animation:spin .8s linear infinite">
           <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-dasharray="31 31" stroke-linecap="round"/>
@@ -305,13 +308,24 @@
           Bookmark it or share it &mdash; anyone with this link sees the same analysis.
         </p>
       </div>
-      <button type="button" @click="copyShareLink()"
+      <button type="button" @click="copyShareLink()" aria-label="Copy share link"
         class="share-btn" :class="linkCopied && 'share-btn-copied'">
         <span x-text="linkCopied ? 'Copied!' : 'Copy link'"></span>
       </button>
     </div>
 
     <div class="summary-box" x-text="summaryPhrase"></div>
+
+    <aside class="support-card" aria-labelledby="support-title">
+      <div>
+        <p class="support-eyebrow">Open-source project</p>
+        <h3 id="support-title">Help keep this calculator free</h3>
+        <p>If this helped you stress-test a retirement plan, consider supporting
+          the maintenance work behind it.</p>
+      </div>
+      <a class="support-link" href="https://github.com/sponsors/YidiDev"
+        target="_blank" rel="noopener noreferrer">Sponsor on GitHub</a>
+    </aside>
 
     <div class="card" x-show="result">
       <h3 style="margin-bottom:0.75rem">Optimal Parameters</h3>
@@ -376,20 +390,24 @@
   </template>
 
   <template x-route="/privacy" x-template>
-    <main x-html="privacyPage()"></main>
+    <div x-html="privacyPage()"></div>
   </template>
 
   <template x-route="/terms" x-template>
-    <main x-html="termsPage()"></main>
+    <div x-html="termsPage()"></div>
+  </template>
+
+  <template x-route="/donate" x-template>
+    <div x-html="donatePage()"></div>
   </template>
 
   <template x-route="notfound" x-template>
-    <main style="text-align:center;padding:4rem 0">
+    <div style="text-align:center;padding:4rem 0">
       <h1 style="margin-bottom:0.5rem">Page not found</h1>
       <p style="color:var(--ink-mid)">
         <a href="/" style="color:var(--sienna);text-decoration:underline;text-underline-offset:3px">Back to calculator</a>
       </p>
-    </main>
+    </div>
   </template>
 
   <footer>
@@ -397,6 +415,7 @@
     <p style="margin-top:0.4rem">
       <a href="/privacy">Privacy</a>
       &middot; <a href="/terms">Terms</a>
+      &middot; <a href="/donate">Support</a>
       &middot; <a href="https://github.com/YidiDev/retirement-planning-calculator"
         target="_blank" rel="noopener noreferrer">GitHub</a>
       &middot; MIT License

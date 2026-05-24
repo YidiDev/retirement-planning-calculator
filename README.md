@@ -2,7 +2,7 @@
 
 A flexible, market-aware retirement withdrawal calculator stress-tested against 150+ years of real U.S. market history. Built with Alpine.js, Chart.js, Tailwind CSS v4, and a Web Worker-based simulation engine.
 
-[Try it live](https://yididev.github.io/retirement-planning-calculator/) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
+[Try it live](https://yididev.github.io/retirement-planning-calculator/) | [Support the project](https://github.com/sponsors/YidiDev) | [Report an issue](https://github.com/YidiDev/retirement-planning-calculator/issues)
 
 ## What It Does
 
