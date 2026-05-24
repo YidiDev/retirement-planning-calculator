@@ -10,34 +10,39 @@ export function chartsSectionTemplate() {
         ]" :key="t.id">
           <button type="button" role="tab"
             :aria-selected="resultTab === t.id"
-            class="tab" :class="resultTab === t.id && 'tab-on'"
+            class="tab" :class="resultTab===t.id && 'tab-on'"
             @click="resultTab = t.id" x-text="t.l"></button>
         </template>
       </div>
 
-      <div x-show="resultTab === 'income'" x-cloak>
-        <p class="text-xs text-muted mb-4">
-          Monthly withdrawal across every historical start date.</p>
-        <div class="chart-box"><canvas id="chartIncome"></canvas></div>
+      <div x-show="resultTab==='income'" x-cloak>
+        <p class="field-hint mb-4">Monthly withdrawal across
+          every historical start date.</p>
+        <div class="chart-box">
+          <canvas id="chartIncome"></canvas>
+        </div>
       </div>
 
-      <div x-show="resultTab === 'preserve'" x-cloak>
-        <p class="text-xs text-muted mb-4">
-          Savings remaining at the end.
-          <span class="text-rose font-bold">Red</span> = missed goal.</p>
-        <div class="chart-box"><canvas id="chartPreserve"></canvas></div>
+      <div x-show="resultTab==='preserve'" x-cloak>
+        <p class="field-hint mb-4">Savings remaining at the end.
+          <span class="text-rose font-bold">Red</span> = missed
+          goal.</p>
+        <div class="chart-box">
+          <canvas id="chartPreserve"></canvas>
+        </div>
       </div>
 
-      <div x-show="resultTab === 'spotlight'" x-cloak>
-        <p class="text-xs text-muted mb-4">
-          A single retirement, month by month.</p>
+      <div x-show="resultTab==='spotlight'" x-cloak>
+        <p class="field-hint mb-4">A single retirement,
+          month by month.</p>
         <div class="flex flex-wrap gap-2 items-center mb-4">
           <select class="text-sm !py-2 !px-3 max-w-full"
-            @change="selectSpot($event.target.value)" :value="spotIdx"
+            @change="selectSpot($event.target.value)"
+            :value="spotIdx"
             aria-label="Select period">
             <template x-for="opt in spotOptions" :key="opt.s">
               <option :value="opt.s" x-text="opt.label"
-                :selected="spotIdx === opt.s"></option>
+                :selected="spotIdx===opt.s"></option>
             </template>
           </select>
           <button type="button" @click="selectSpotWorst()"
@@ -47,7 +52,9 @@ export function chartsSectionTemplate() {
           <button type="button" @click="selectSpotTypical()"
             class="chip">Typical</button>
         </div>
-        <div class="chart-box"><canvas id="chartSpotlight"></canvas></div>
+        <div class="chart-box">
+          <canvas id="chartSpotlight"></canvas>
+        </div>
       </div>
     </section>
   </template>`;
