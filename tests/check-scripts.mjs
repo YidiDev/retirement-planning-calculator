@@ -1,6 +1,15 @@
 import { execFileSync } from 'node:child_process';
 
-const files = ['src/main.js', 'src/app.js', 'src/charts.js', 'src/analytics.js', 'src/sentry.js', 'src/worker.js'];
+const files = [
+  'functions/_middleware.js',
+  'src/main.js',
+  'src/app.js',
+  'src/calculator-state.js',
+  'src/charts.js',
+  'src/analytics.js',
+  'src/sentry.js',
+  'src/worker.js',
+];
 
 for (const f of files) {
   execFileSync('node', ['--check', f], { stdio: 'inherit' });

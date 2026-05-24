@@ -1,9 +1,12 @@
 import './sentry.js';
 import Alpine from 'alpinejs';
+import PineconeRouter from 'pinecone-router';
 import './styles.css';
 import { calculator } from './app.js';
+import { privacyPage } from './pages/privacy.js';
+import { termsPage } from './pages/terms.js';
 
-// Load GA4 if measurement ID is configured
+// GA4
 const gaId = typeof __GA_MEASUREMENT_ID__ !== 'undefined' ? __GA_MEASUREMENT_ID__ : '';
 if (gaId) {
   const s = document.createElement('script');
@@ -16,5 +19,10 @@ if (gaId) {
   window.gtag('config', gaId, { send_page_view: false });
 }
 
+// Page content on window for x-html
+window.privacyPage = privacyPage;
+window.termsPage = termsPage;
+
+Alpine.plugin(PineconeRouter);
 Alpine.data('calculator', calculator);
 Alpine.start();
