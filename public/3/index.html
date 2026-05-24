@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Retirement Withdrawal Calculator</title>
+<meta name="description" content="A warm, approachable retirement withdrawal calculator stress-tested against 150+ years of real market history.">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<meta name="theme-color" content="#b85c38">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0}
+:root{
+  --paper:#f5f0e8;--paper-light:#faf6ef;--paper-mid:#efe8db;
+  --ink:#2c2418;--ink-mid:#5a4e3f;--ink-light:#8a7e6f;
+  --sienna:#b85c38;--sienna-light:#d4764f;--sienna-dark:#964a2c;
+  --border:#d4c9b8;--border-light:#e2d9cb;
+  --success:#5a7a4a;--danger:#a0433a;
+  --radius:14px;--radius-sm:10px;
+}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{
+  font-family:'Source Sans 3',system-ui,sans-serif;
+  color:var(--ink-mid);line-height:1.6;
+  background:var(--paper);
+  min-height:100vh;
+  /* subtle noise texture via SVG */
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+}
+h1,h2,h3,h4{font-family:'Newsreader',Georgia,serif;color:var(--ink);font-weight:500;line-height:1.25}
+h1{font-size:clamp(1.75rem,4vw,2.5rem);letter-spacing:-0.02em}
+h2{font-size:clamp(1.25rem,3vw,1.6rem)}
+h3{font-size:1.15rem}
+
+.container{max-width:760px;margin:0 auto;padding:clamp(1.5rem,5vw,3rem) clamp(1rem,4vw,2rem)}
+
+/* Step numbers — hand-drawn circle feel */
+.step-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  border:1.5px solid var(--ink-light);
+  font-family:'Newsreader',serif;font-size:0.95rem;font-style:italic;
+  color:var(--ink);background:transparent;flex-shrink:0;
+}
+.step-heading{display:flex;align-items:center;gap:12px;margin-bottom:1rem}
+
+/* Cards */
+.card{
+  background:var(--paper-light);
+  border:1px dashed var(--border);
+  border-radius:var(--radius);
+  padding:clamp(1.25rem,3vw,2rem);
+  margin-bottom:1.5rem;
+}
+
+/* Form elements */
+label{font-weight:500;font-size:0.9rem;color:var(--ink);display:block;margin-bottom:4px}
+.field{margin-bottom:1.25rem}
+input[type="number"],input[type="text"],select{
+  width:100%;padding:10px 14px;
+  background:var(--paper);border:1px solid var(--border);
+  border-radius:var(--radius-sm);
+  font-family:inherit;font-size:0.95rem;color:var(--ink);
+  transition:border-color .2s,box-shadow .2s;
+}
+input:focus,select:focus{
+  outline:none;border-color:var(--sienna);
+  box-shadow:0 0 0 3px rgba(184,92,56,0.12);
+}
+.hint{font-size:0.8rem;color:var(--ink-light);margin-top:3px}
+
+/* Range slider */
+input[type="range"]{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;
+  background:var(--border);border-radius:3px;outline:none;
+  margin:8px 0 4px;
+}
+input[type="range"]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:20px;height:20px;border-radius:50%;
+  background:var(--sienna);border:2px solid var(--paper-light);
+  box-shadow:0 1px 4px rgba(44,36,24,0.2);cursor:pointer;
+}
+input[type="range"]::-moz-range-thumb{
+  width:20px;height:20px;border-radius:50%;border:2px solid var(--paper-light);
+  background:var(--sienna);box-shadow:0 1px 4px rgba(44,36,24,0.2);cursor:pointer;
+}
+
+/* Radio pills */
+.radio-group{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.radio-pill{
+  padding:7px 16px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;
+  font-family:inherit;font-size:0.85rem;color:var(--ink-mid);
+  cursor:pointer;transition:all .2s;
+}
+.radio-pill:hover{border-color:var(--sienna-light);color:var(--sienna)}
+.radio-pill.active{
+  background:var(--sienna);color:#fff;border-color:var(--sienna);
+}
+
+/* Primary button */
+.btn-primary{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:14px 32px;border:none;border-radius:var(--radius);
+  background:var(--sienna);color:#fff;
+  font-family:'Newsreader',serif;font-size:1.1rem;font-weight:500;
+  cursor:pointer;transition:background .2s,transform .1s;
+  letter-spacing:0.01em;
+}
+.btn-primary:hover{background:var(--sienna-dark)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{opacity:0.5;cursor:wait}
+
+/* Toggle */
+.toggle-link{
+  background:none;border:none;font-family:inherit;
+  font-size:0.85rem;color:var(--sienna);cursor:pointer;
+  padding:4px 0;text-decoration:underline;text-underline-offset:3px;
+}
+.toggle-link:hover{color:var(--sienna-dark)}
+
+/* Results */
+.hero-stat{text-align:center;padding:1.5rem 1rem}
+.hero-value{
+  font-family:'Newsreader',serif;font-size:clamp(2rem,6vw,3.2rem);
+  color:var(--ink);font-weight:600;line-height:1;
+}
+.hero-label{font-size:0.85rem;color:var(--ink-light);margin-top:6px}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.hero-grid .hero-stat{background:var(--paper-light)}
+
+.confidence-high{color:var(--success)}
+.confidence-good{color:#5a7a4a}
+.confidence-fair{color:var(--sienna)}
+.confidence-low{color:var(--danger)}
+
+/* Tabs */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab-btn{
+  padding:10px 18px;background:none;border:none;border-bottom:2px solid transparent;
+  font-family:'Newsreader',serif;font-size:0.95rem;color:var(--ink-light);
+  cursor:pointer;transition:all .2s;
+}
+.tab-btn:hover{color:var(--ink)}
+.tab-btn.active{color:var(--sienna);border-bottom-color:var(--sienna)}
+
+/* Chart container */
+.chart-wrap{position:relative;height:280px;margin:1rem 0}
+
+/* Table */
+.data-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.data-table th{
+  text-align:left;font-weight:600;color:var(--ink);
+  padding:8px 10px;border-bottom:1.5px solid var(--border);
+  font-size:0.78rem;text-transform:uppercase;letter-spacing:0.04em;
+}
+.data-table td{padding:7px 10px;border-bottom:1px dashed var(--border-light)}
+.data-table tr:hover td{background:var(--paper-mid)}
+.data-table .fail{color:var(--danger);font-weight:500}
+.data-table .pass{color:var(--success)}
+
+/* Summary box */
+.summary-box{
+  background:var(--paper-mid);border-radius:var(--radius-sm);
+  padding:1rem 1.25rem;font-size:0.88rem;line-height:1.7;
+  border-left:3px solid var(--sienna);margin-bottom:1.5rem;
+}
+
+/* Spot select */
+.spot-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:1rem}
+.spot-btn{
+  padding:5px 12px;border-radius:16px;border:1px solid var(--border);
+  background:transparent;font-size:0.8rem;color:var(--ink-mid);
+  cursor:pointer;transition:all .15s;
+}
+.spot-btn:hover{border-color:var(--sienna)}
+.spot-btn.active{background:var(--sienna);color:#fff;border-color:var(--sienna)}
+
+select.spot-select{
+  flex:1;min-width:180px;padding:6px 10px;font-size:0.82rem;
+  border-radius:16px;
+}
+
+/* Grid helpers */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:540px){.grid-2{grid-template-columns:1fr}}
+
+/* Footer */
+footer{text-align:center;padding:2rem 0 1rem;font-size:0.78rem;color:var(--ink-light)}
+footer a{color:var(--sienna);text-decoration:none}
+
+/* Transitions */
+[x-cloak]{display:none!important}
+.fade-in{animation:fadeIn .4s ease-out}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:var(--paper)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* Print */
+@media print{body{background:#fff}.card{border:1px solid #ccc;break-inside:avoid}}
+</style>
+</head>
+<body>
+<main class="container" x-data="calculator()" x-cloak>
+
+  <!-- Header -->
+  <header style="text-align:center;margin-bottom:2.5rem;padding-top:1rem">
+    <h1 style="margin-bottom:0.4rem">Retirement Withdrawal Planner</h1>
+    <p style="font-size:0.95rem;max-width:520px;margin:0 auto">
+      Find sustainable withdrawal rates backed by 150+ years of real market data.
+    </p>
+  </header>
+
+  <!-- Step 1: Savings -->
+  <div class="card">
+    <div class="step-heading"><span class="step-num">1</span><h2>Your Savings</h2></div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Nest egg</label>
+        <input type="number" x-model.number="savings" min="10000" step="10000">
+        <p class="hint">Total retirement savings in today's dollars</p>
+      </div>
+      <div class="field">
+        <label>Retirement length</label>
+        <input type="range" min="5" max="60" x-model.number="years">
+        <div style="display:flex;justify-content:space-between;font-size:0.82rem;color:var(--ink-light)">
+          <span>5 yr</span><span x-text="years + ' years'" style="font-weight:500;color:var(--ink)"></span><span>60 yr</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Goal -->
+  <div class="card">
+    <div class="step-heading"><span class="step-num">2</span><h2>Your Goal</h2></div>
+    <div class="radio-group">
+      <button class="radio-pill" :class="goalPreset==='preserve'&&'active'" @click="setGoalPreset('preserve')">Preserve capital</button>
+      <button class="radio-pill" :class="goalPreset==='spend'&&'active'" @click="setGoalPreset('spend')">Spend it down</button>
+      <button class="radio-pill" :class="goalPreset==='custom'&&'active'" @click="goalPreset='custom'">Custom</button>
+    </div>
+    <div x-show="goalPreset==='custom'" class="field" style="max-width:280px">
+      <label>Retain this % of savings at end</label>
+      <input type="number" x-model.number="retainPct" min="0" max="300" step="5">
+    </div>
+  </div>
+
+  <!-- Step 3: Portfolio -->
+  <div class="card">
+    <div class="step-heading"><span class="step-num">3</span><h2>Investment Mix</h2></div>
+    <div class="radio-group">
+      <button class="radio-pill" :class="strategyPreset==='stocks'&&'active'" @click="setStrategy('stocks')">All stocks</button>
+      <button class="radio-pill" :class="strategyPreset==='balanced'&&'active'" @click="setStrategy('balanced')">Balanced</button>
+      <button class="radio-pill" :class="strategyPreset==='conservative'&&'active'" @click="setStrategy('conservative')">Conservative</button>
+    </div>
+    <p class="hint" x-text="allocNote" style="margin-bottom:0.75rem"></p>
+
+    <!-- Sleeve bar -->
+    <div style="display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--border);margin-bottom:1rem"
+         x-show="sleeves.total>0">
+      <div style="background:var(--sienna);transition:width .3s" :style="{width:sleeveBarStyles.sp}"></div>
+      <div style="background:var(--ink-light);transition:width .3s" :style="{width:sleeveBarStyles.bd}"></div>
+      <div style="background:#c9a84c;transition:width .3s" :style="{width:sleeveBarStyles.gd}"></div>
+    </div>
+    <div style="display:flex;gap:16px;font-size:0.78rem;color:var(--ink-light);margin-bottom:0.5rem" x-show="sleeves.total>0">
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sienna);margin-right:4px"></span>Stocks</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ink-light);margin-right:4px"></span>Bonds</span>
+      <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#c9a84c;margin-right:4px"></span>Gold</span>
+    </div>
+  </div>
+
+  <!-- Step 4: Withdrawal -->
+  <div class="card">
+    <div class="step-heading"><span class="step-num">4</span><h2>Withdrawal Rules</h2></div>
+
+    <div class="grid-2">
+      <div class="field">
+        <label>Floor mode</label>
+        <div class="radio-group">
+          <button class="radio-pill" :class="floorMode==='pct'&&'active'" @click="floorMode='pct'" style="font-size:0.8rem;padding:5px 12px">% of portfolio</button>
+          <button class="radio-pill" :class="floorMode==='usd'&&'active'" @click="floorMode='usd'" style="font-size:0.8rem;padding:5px 12px">Fixed $</button>
+          <button class="radio-pill" :class="floorMode==='both'&&'active'" @click="floorMode='both'" style="font-size:0.8rem;padding:5px 12px">Both</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Cap mode</label>
+        <div class="radio-group">
+          <button class="radio-pill" :class="capMode==='pct'&&'active'" @click="capMode='pct'" style="font-size:0.8rem;padding:5px 12px">% of portfolio</button>
+          <button class="radio-pill" :class="capMode==='usd'&&'active'" @click="capMode='usd'" style="font-size:0.8rem;padding:5px 12px">Fixed $</button>
+          <button class="radio-pill" :class="capMode==='both'&&'active'" @click="capMode='both'" style="font-size:0.8rem;padding:5px 12px">Both</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field" x-show="floorMode==='pct'||floorMode==='both'">
+        <label>Min withdrawal % (annual)</label>
+        <input type="number" x-model.number="minFloorPct" min="0" max="12" step="0.5">
+      </div>
+      <div class="field" x-show="floorMode==='usd'||floorMode==='both'">
+        <label>Min monthly income ($)</label>
+        <input type="number" x-model.number="minIncome" min="0" step="100">
+      </div>
+      <div class="field" x-show="floorMode==='both'">
+        <label>% floor (annual)</label>
+        <input type="number" x-model.number="pctFloor" min="0" max="12" step="0.5">
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="field" x-show="capMode==='pct'||capMode==='both'">
+        <label>Max withdrawal % (annual)</label>
+        <input type="number" x-model.number="maxCapPct" min="1" max="40" step="0.5">
+      </div>
+      <div class="field" x-show="capMode==='usd'||capMode==='both'">
+        <label>Max monthly income ($)</label>
+        <input type="number" x-model.number="maxIncome" min="0" step="500">
+      </div>
+    </div>
+
+    <!-- Advanced -->
+    <button class="toggle-link" @click="showAdvanced=!showAdvanced" x-text="showAdvanced?'Hide advanced settings':'Advanced settings'"></button>
+    <div x-show="showAdvanced" x-transition style="margin-top:1rem">
+      <div class="grid-2">
+        <div class="field">
+          <label>Lookback (months)</label>
+          <input type="number" x-model.number="lookback" min="1" max="120">
+          <p class="hint">Market window for rate calculation</p>
+        </div>
+        <div class="field">
+          <label>Recalculate every (months)</label>
+          <input type="number" x-model.number="recalc" min="1" max="120">
+          <p class="hint">1 = recalc monthly</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Calculate -->
+  <div style="text-align:center;margin:2rem 0">
+    <button class="btn-primary" @click="calculate()" :disabled="loading">
+      <template x-if="loading">
+        <svg width="20" height="20" viewBox="0 0 24 24" style="animation:spin .8s linear infinite"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-dasharray="31 31" stroke-linecap="round"/></svg>
+      </template>
+      <span x-text="loading?'Analyzing\u2026':'Run Analysis'"></span>
+    </button>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+  </div>
+
+  <!-- Results -->
+  <template x-if="showResults">
+  <div class="fade-in">
+
+    <!-- Hero stats -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="hero-stat" style="border-bottom:1px dashed var(--border)">
+        <div class="hero-value" x-text="heroMonthly"></div>
+        <div class="hero-label">Median monthly income (today's dollars)</div>
+      </div>
+      <div class="hero-grid">
+        <div class="hero-stat">
+          <div class="hero-value" style="font-size:1.8rem" :class="'confidence-'+heroConfidence" x-text="heroPassRate"></div>
+          <div class="hero-label">Historical success rate</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-value" style="font-size:1.8rem" x-text="periodCount"></div>
+          <div class="hero-label">Historical periods tested</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-box" x-text="summaryPhrase"></div>
+
+    <!-- Result details -->
+    <div class="card" x-show="result">
+      <h3 style="margin-bottom:0.75rem">Optimal Parameters</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;font-size:0.88rem">
+        <div>
+          <span style="color:var(--ink-light)">Floor:</span>
+          <strong x-text="floorMode==='usd'?money(result.D)+'/mo':result.aPct.toFixed(2)+'%/yr'"></strong>
+        </div>
+        <div>
+          <span style="color:var(--ink-light)">Cap:</span>
+          <strong x-text="capMode==='usd'?money(result.C)+'/mo':result.bPct.toFixed(2)+'%/yr'"></strong>
+        </div>
+        <div>
+          <span style="color:var(--ink-light)">Sensitivity:</span>
+          <strong x-text="result.x.toFixed(2)"></strong>
+        </div>
+        <div>
+          <span style="color:var(--ink-light)">Failures:</span>
+          <strong x-text="failCount + ' of ' + periodCount"></strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="card">
+      <div class="tab-bar">
+        <button class="tab-btn" :class="resultTab==='income'&&'active'" @click="resultTab='income'">Income</button>
+        <button class="tab-btn" :class="resultTab==='preserve'&&'active'" @click="resultTab='preserve'">Capital</button>
+        <button class="tab-btn" :class="resultTab==='spotlight'&&'active'" @click="resultTab='spotlight'">Spotlight</button>
+      </div>
+
+      <div x-show="resultTab==='income'">
+        <div class="chart-wrap"><canvas id="chartIncome"></canvas></div>
+      </div>
+
+      <div x-show="resultTab==='preserve'">
+        <div class="chart-wrap"><canvas id="chartPreserve"></canvas></div>
+      </div>
+
+      <div x-show="resultTab==='spotlight'">
+        <div class="spot-bar">
+          <button class="spot-btn" @click="selectSpotWorst()">Worst</button>
+          <button class="spot-btn" @click="selectSpotTypical()">Typical</button>
+          <button class="spot-btn" @click="selectSpotBest()">Best</button>
+          <select class="spot-select" @change="selectSpot($event.target.value)">
+            <template x-for="o in spotOptions" :key="o.s">
+              <option :value="o.s" :selected="o.s===spotIdx" x-text="o.label"></option>
+            </template>
+          </select>
+        </div>
+        <div class="chart-wrap"><canvas id="chartSpotlight"></canvas></div>
+        <template x-if="spotlight">
+          <p style="font-size:0.82rem;color:var(--ink-light);text-align:center;margin-top:4px"
+             x-text="'Period: '+spotlight.start+' to '+spotlight.end"></p>
+        </template>
+      </div>
+    </div>
+
+    <!-- Data table -->
+    <div class="card">
+      <h3 style="margin-bottom:0.75rem">All Historical Periods</h3>
+      <div style="overflow-x:auto;max-height:400px;overflow-y:auto">
+        <table class="data-table">
+          <thead><tr>
+            <th>Start</th><th>1st Yr $/mo</th><th>Avg $/mo</th><th>End %</th><th>Result</th>
+          </tr></thead>
+          <tbody>
+            <template x-for="r in rows" :key="r.s">
+              <tr @click="selectSpot(r.s);resultTab='spotlight'" style="cursor:pointer">
+                <td x-text="r.start"></td>
+                <td x-text="rowIncome(r)"></td>
+                <td x-text="rowAvg(r)"></td>
+                <td x-text="rowEnd(r)"></td>
+                <td><span :class="r.passed?'pass':'fail'" x-text="r.passed?'Pass':'Fail'"></span></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  </template>
+
+  <footer>
+    Historical data from 1871. Results reflect past performance and do not guarantee future returns.
+  </footer>
+
+</main>
+
+<script>
+fetch('/worker-data.js').then(r=>r.text()).then(src=>{
+  document.getElementById('worker-src').textContent=src;
+});
+</script>
+<script id="worker-src" type="javascript/worker"></script>
+
+<script>
+function calculator(){
+  let worker=null;
+  const INF=1e9;
+
+  function money(v){return '$'+Math.round(v).toLocaleString('en-US')}
+  function moneyK(v){
+    if(Math.abs(v)>=1e6)return '$'+(v/1e6).toFixed(1)+'M';
+    if(Math.abs(v)>=1000)return '$'+(Math.round(v/100)/10)+'k';
+    return '$'+Math.round(v);
+  }
+  function median(arr){const s=arr.slice().sort((a,b)=>a-b);return s[Math.floor(s.length/2)]}
+  function passLabel(r){
+    if(r.n_pass>=r.n_windows)return '100%';
+    const s=(r.n_pass/r.n_windows*100).toFixed(1);
+    return s==='100.0'?'99.9%':s+'%';
+  }
+  function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v))}
+
+  function initWorker(ctx){
+    const el=document.getElementById('worker-src');
+    if(!el||!el.textContent.trim())return;
+    worker=new Worker(URL.createObjectURL(new Blob([el.textContent],{type:'text/javascript'})));
+    worker.onmessage=function(ev){
+      if(ev.data.type==='result')ctx._onResult(ev.data);
+      else if(ev.data.type==='spotlight')ctx._onSpotlight(ev.data);
+    };
+  }
+
+  // Chart instances
+  const charts={};
+  function destroyChart(k){if(charts[k]){charts[k].destroy();charts[k]=null}}
+  function chartOpts(yTitle,yFmt){
+    return{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true,color:'#8a7e6f',font:{size:10}}},
+        y:{title:{display:true,text:yTitle,color:'#5a4e3f',font:{size:11}},grid:{color:'#e2d9cb'},border:{display:false},ticks:{callback:v=>yFmt(v),color:'#8a7e6f',font:{size:10}}}
+      },
+      plugins:{
+        legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11,family:"'Source Sans 3',sans-serif"},color:'#5a4e3f'}},
+        tooltip:{callbacks:{title:items=>'Retired '+items[0].label}}
+      }
+    };
+  }
+  function renderIncome(rows){
+    destroyChart('inc');
+    const el=document.getElementById('chartIncome');if(!el)return;
+    charts.inc=new Chart(el,{type:'line',data:{
+      labels:rows.map(r=>r.start),
+      datasets:[
+        {label:'Average monthly',data:rows.map(r=>Math.round(r.avgAnnualReal/12)),borderColor:'#b85c38',backgroundColor:'rgba(184,92,56,.1)',borderWidth:1.6,pointRadius:0,fill:true,tension:.15},
+        {label:'First-year monthly',data:rows.map(r=>Math.round(r.firstYearReal/12)),borderColor:'#5a7a4a',backgroundColor:'rgba(90,122,74,.08)',borderWidth:1.6,pointRadius:0,fill:true,tension:.15}
+      ]
+    },options:chartOpts("Withdrawal ($/month, today's $)",moneyK)});
+  }
+  function renderPreserve(rows,target){
+    destroyChart('pre');
+    const el=document.getElementById('chartPreserve');if(!el)return;
+    charts.pre=new Chart(el,{type:'line',data:{
+      labels:rows.map(r=>r.start),
+      datasets:[
+        {label:'Savings remaining (%)',data:rows.map(r=>+(r.endRatio*100).toFixed(1)),borderColor:'#b85c38',backgroundColor:'rgba(184,92,56,.08)',borderWidth:1.6,fill:true,tension:.15,
+         pointRadius:rows.map(r=>r.passed?0:3),pointBackgroundColor:rows.map(r=>r.passed?'transparent':'#a0433a'),pointBorderColor:rows.map(r=>r.passed?'transparent':'#a0433a')},
+        {label:'Goal ('+Math.round(target*100)+'%)',data:rows.map(()=>target*100),borderColor:'#8a7e6f',borderWidth:1.4,borderDash:[6,4],pointRadius:0,fill:false}
+      ]
+    },options:chartOpts('Inflation-adjusted savings left',v=>v+'%')});
+  }
+  function renderSpotlight(traj){
+    destroyChart('spot');
+    const el=document.getElementById('chartSpotlight');if(!el)return;
+    charts.spot=new Chart(el,{type:'line',data:{
+      labels:traj.labels,
+      datasets:[
+        {label:'Portfolio value',yAxisID:'y',data:traj.realValue.map(v=>Math.round(v)),borderColor:'#b85c38',backgroundColor:'rgba(184,92,56,.1)',borderWidth:1.8,pointRadius:0,fill:true,tension:.15},
+        {label:'Monthly income',yAxisID:'y1',data:traj.realWithdrawal.map(v=>Math.round(v/12)),borderColor:'#5a7a4a',borderWidth:1.6,pointRadius:0,fill:false,tension:.15}
+      ]
+    },options:{
+      responsive:true,maintainAspectRatio:false,animation:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{grid:{display:false},border:{display:false},ticks:{maxTicksLimit:10,autoSkip:true,color:'#8a7e6f',font:{size:10}}},
+        y:{position:'left',title:{display:true,text:"Portfolio value (today's $)",color:'#5a4e3f',font:{size:11}},grid:{color:'#e2d9cb'},border:{display:false},ticks:{callback:v=>moneyK(v),color:'#8a7e6f',font:{size:10}}},
+        y1:{position:'right',title:{display:true,text:'Income ($/month)',color:'#5a4e3f',font:{size:11}},grid:{display:false},border:{display:false},ticks:{callback:v=>moneyK(v),color:'#8a7e6f',font:{size:10}}}
+      },
+      plugins:{legend:{labels:{boxWidth:8,boxHeight:8,usePointStyle:true,font:{size:11,family:"'Source Sans 3',sans-serif"},color:'#5a4e3f'}}}
+    }});
+  }
+
+  return{
+    showResults:false,loading:false,resultTab:'income',
+    showAdvanced:false,spotIdx:null,
+
+    savings:1000000,years:30,goalPreset:'preserve',retainPct:100,
+    strategyPreset:'stocks',
+    portfolio:[{id:'sp500_price',weight:100}],
+
+    floorMode:'usd',minFloorPct:4,minIncome:3000,pctFloor:4,
+    capMode:'usd',maxCapPct:9,maxIncome:12000,
+    lookback:1,recalc:1,
+
+    result:null,rows:[],spotlight:null,spotOptions:[],
+
+    money,moneyK,
+
+    get sleeves(){
+      const o={sp:0,bd:0,gd:0,total:0};
+      const map={sp500_price:'sp',total_us_market_vti:'sp',ten_year_treasury_yield:'bd',gold_gld:'gd'};
+      for(const p of this.portfolio){const s=map[p.id]||'sp';const w=Math.max(0,parseFloat(p.weight)||0);o[s]+=w;o.total+=w}
+      return o;
+    },
+    get sleeveBarStyles(){
+      const s=this.sleeves,t=s.total||1;
+      return{sp:(s.sp/t*100).toFixed(1)+'%',bd:(s.bd/t*100).toFixed(1)+'%',gd:(s.gd/t*100).toFixed(1)+'%'};
+    },
+    get allocNote(){
+      const s=this.sleeves;
+      if(s.total<=0)return 'Add holdings to see the simulation mix.';
+      const note=Math.round(s.sp)+'% stocks, '+Math.round(s.bd)+'% bonds, '+Math.round(s.gd)+'% gold';
+      const warn=(Math.abs(s.total-100)>0.5)?' (will be rescaled to 100%)':'';
+      const gold=s.gd>0?' Gold limits history to 1968\u20132023.':'';
+      return note+warn+'.'+gold;
+    },
+    get heroMonthly(){
+      if(!this.rows.length)return '$0';
+      return money(median(this.rows.map(r=>r.firstYearReal))/12);
+    },
+    get heroPassRate(){return this.result?passLabel(this.result):'0%'},
+    get heroConfidence(){
+      if(!this.result)return 'neutral';
+      const rate=this.result.n_pass/this.result.n_windows;
+      if(rate>=0.999)return 'high';if(rate>=0.95)return 'good';
+      if(rate>=0.85)return 'fair';return 'low';
+    },
+    get periodCount(){return this.rows.length},
+    get failCount(){return this.rows.filter(r=>!r.passed).length},
+    get typicalAvgIncome(){
+      if(!this.rows.length)return '$0/mo';
+      return money(median(this.rows.map(r=>r.avgAnnualReal))/12)+'/mo';
+    },
+    get worstCase(){
+      if(!this.rows.length)return null;
+      return this.rows.reduce((w,r)=>r.endRatio<w.endRatio?r:w,this.rows[0]);
+    },
+    get summaryPhrase(){
+      if(!this.result||!this.rows.length)return '';
+      const b=this.result,n=this.rows.length;
+      const floor=this.floorMode==='usd'?money(b.D)+'/mo':b.aPct.toFixed(2)+'%/yr';
+      const cap=this.capMode==='usd'?money(b.C)+'/mo':b.bPct.toFixed(2)+'%/yr';
+      return 'Tested against '+n+' historical retirements spanning '+this.years+' years each. '+
+        'Floor: '+floor+'. Cap: '+cap+'. Sensitivity: '+b.x.toFixed(2)+'. '+
+        passLabel(b)+' met the goal of retaining '+Math.round(this.retainPct)+'% of savings. '+
+        'These are ceilings \u2014 spending less is always safer.';
+    },
+
+    rowIncome(r){return money(r.firstYearReal/12)},
+    rowAvg(r){return money(r.avgAnnualReal/12)},
+    rowEnd(r){return (r.endRatio*100).toFixed(0)+'%'},
+
+    setGoalPreset(p){
+      this.goalPreset=p;
+      if(p==='preserve')this.retainPct=100;
+      else if(p==='spend')this.retainPct=0;
+    },
+    setStrategy(name){
+      this.strategyPreset=name;
+      if(name==='stocks')this.portfolio=[{id:'sp500_price',weight:100}];
+      else if(name==='balanced')this.portfolio=[{id:'total_us_market_vti',weight:60},{id:'ten_year_treasury_yield',weight:40}];
+      else if(name==='conservative')this.portfolio=[{id:'total_us_market_vti',weight:40},{id:'ten_year_treasury_yield',weight:40},{id:'gold_gld',weight:20}];
+    },
+
+    selectSpot(s){this.spotIdx=+s;if(worker)worker.postMessage({type:'spotlight',s:+s})},
+    selectSpotWorst(){const w=this.worstCase;if(w)this.selectSpot(w.s)},
+    selectSpotBest(){if(!this.rows.length)return;this.selectSpot(this.rows.reduce((b,r)=>r.endRatio>b.endRatio?r:b,this.rows[0]).s)},
+    selectSpotTypical(){if(!this.rows.length)return;this.selectSpot(this.rows[Math.floor(this.rows.length/2)].s)},
+
+    calculate(){
+      const s=this.sleeves;
+      if(s.sp+s.bd+s.gd<=0){this.portfolio=[{id:'sp500_price',weight:100}];return this.calculate()}
+      if(!worker){
+        initWorker(this);
+        if(!worker){setTimeout(()=>this.calculate(),200);return}
+      }
+      this.loading=true;this.showResults=false;
+      const msg={
+        type:'run',floorMode:this.floorMode,capMode:this.capMode,
+        years:clamp(this.years,5,100),minA:clamp(this.minFloorPct,4,10),
+        dollarFloor:Math.max(0,this.minIncome),pctFloor:clamp(this.pctFloor,0,12),
+        pctCap:clamp(this.maxCapPct,0.5,40),dollarCap:Math.max(0,this.maxIncome),
+        lookback:clamp(Math.round(this.lookback),1,120),recalc:clamp(Math.round(this.recalc),1,120),
+        nestEgg:Math.max(1000,this.savings),retain:clamp(this.retainPct,0,300),
+        wSp:s.sp,wBond:s.bd,wGold:s.gd
+      };
+      setTimeout(()=>{if(worker)worker.postMessage(msg)},20);
+    },
+
+    _onResult(m){
+      this.loading=false;this.result=m.best;this.rows=m.rows||[];
+      this.showResults=true;this.resultTab='income';
+      this._target=m.target;
+      if(!this.rows.length)return;
+      this.spotOptions=this.rows.map(r=>({s:r.s,label:r.start+' \u2013 '+r.end}));
+      this.$nextTick(()=>{
+        renderIncome(this.rows);
+        renderPreserve(this.rows,m.target);
+        this.selectSpotWorst();
+      });
+    },
+    _onSpotlight(m){
+      this.spotlight=m.traj;
+      this.$nextTick(()=>{renderSpotlight(m.traj)});
+    },
+
+    init(){
+      // Delay init so worker script has time to load
+      setTimeout(()=>initWorker(this),300);
+    }
+  };
+}
+</script>
+</body>
+</html>
