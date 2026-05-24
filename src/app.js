@@ -73,19 +73,19 @@ function readParams() {
 const DEFAULTS = {
   savings: 1000000,
   years: 30,
-  goalPreset: 'preserve',
-  retainPct: 100,
-  strategyPreset: 'stocks',
+  goalPreset: 'spend',
+  retainPct: 0,
+  strategyPreset: 'balanced',
   floorMode: 'usd',
   minFloorPct: 4,
   minIncome: 3000,
   capMode: 'usd',
-  maxCapPct: 9,
-  maxIncome: 12000,
-  lookback: 1,
-  recalc: 1,
+  maxCapPct: 6,
+  maxIncome: 6000,
+  lookback: 12,
+  recalc: 12,
 };
-const DEFAULT_PORTFOLIO = '[{"id":"sp500_price","weight":100}]';
+const DEFAULT_PORTFOLIO = '[{"id":"total_us_market_vti","weight":60},{"id":"ten_year_treasury_yield","weight":40}]';
 
 function writeParams(state) {
   const p = new URLSearchParams();
@@ -143,7 +143,7 @@ function initWorker(ctx) {
   try {
     const el = document.getElementById('worker-src');
     if (!el || !el.textContent.trim()) return;
-    worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })));
+    worker = new Worker(URL.createObjectURL(new Blob([el.textContent], { type: 'text/javascript' })), { type: 'module' });
     worker.onmessage = ev => {
       if (ev.data.type === 'result') ctx._onResult(ev.data);
       else if (ev.data.type === 'spotlight') ctx._onSpotlight(ev.data);
@@ -168,19 +168,22 @@ export function calculator() {
 
     savings: 1000000,
     years: 30,
-    goalPreset: 'preserve',
-    retainPct: 100,
-    strategyPreset: 'stocks',
-    portfolio: [{ id: 'sp500_price', weight: 100 }],
+    goalPreset: 'spend',
+    retainPct: 0,
+    strategyPreset: 'balanced',
+    portfolio: [
+      { id: 'total_us_market_vti', weight: 60 },
+      { id: 'ten_year_treasury_yield', weight: 40 },
+    ],
 
     floorMode: 'usd',
     minFloorPct: 4,
     minIncome: 3000,
     capMode: 'usd',
-    maxCapPct: 9,
-    maxIncome: 12000,
-    lookback: 1,
-    recalc: 1,
+    maxCapPct: 6,
+    maxIncome: 6000,
+    lookback: 12,
+    recalc: 12,
 
     result: null,
     rows: [],
